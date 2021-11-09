@@ -14,15 +14,15 @@ class CreateSatuansTable extends Migration
     public function up()
     {
         Schema::create('satuans', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id');
             $table->string('nama_layanan');
             $table->integer('harga');
-            $table->string('idwaktu')->nullable();
+            $table->uuid('idwaktu')->nullable();
             $table->string('kategori');
             $table->string('jenis');
             $table->string('item');
             $table->boolean('status');
-            $table->string('idoutlet')->nullable();
+            $table->uuid('idoutlet')->nullable();
             $table->timestamps();
         });
     }

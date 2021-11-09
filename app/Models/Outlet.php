@@ -15,6 +15,7 @@ class Outlet extends Model
         'nama_outlet',
         'status_outlet',
         'alamat',
+        'parent',
         'sosial_media',
     ];
 }

@@ -21,6 +21,7 @@ use App\Http\Controllers\API\Service\PesananController;
 */
 // auth
 Route::post('/register', [AuthController::class, 'register'])->name('register');
+Route::post('/registerKr', [AuthController::class, 'registerKaryawan'])->name('registerKaryawan');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 
@@ -31,11 +32,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 // pesanan
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/pesanan', [PesananController::class, 'create']);
+    Route::get('/pesanan', [PesananController::class, 'show']);
 });
 
 //outlet
 Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
     Route::post('/outlet', [OutletController::class, 'create']);
+    Route::post('/outlet/cabang', [OutletController::class, 'tambahCabang']);
+    Route::post('/invite', [OutletController::class, 'invite']);
 });
 
 // Waktu

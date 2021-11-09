@@ -14,13 +14,13 @@ class CreateWaktusTable extends Migration
     public function up()
     {
         Schema::create('waktus', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id');
             $table->string('nama');
             $table->integer('waktu');
             $table->string('jenis');
             $table->boolean('status');
             $table->string('paket');
-            $table->string('idoutlet')->nullable();
+            $table->uuid('idoutlet')->nullable();
             $table->timestamps();
         });
     }

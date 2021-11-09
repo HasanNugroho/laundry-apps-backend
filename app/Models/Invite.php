@@ -5,17 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Pembayaran extends Model
+class Invite extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'idpesanan',
-        'subtotal',
-        'diskon',
-        'tagihan',
+        'token',
         'status',
-        'bayar',
-        'harga',
-        'metode_pembayaran',
+        'idoutlet',
     ];
 }

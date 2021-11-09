@@ -15,13 +15,14 @@ class CreatePembayaransTable extends Migration
     {
         Schema::create('pembayarans', function (Blueprint $table) {
             $table->id();
-            $table->string('idpesanan');
+            $table->uuid('idpesanan');
             $table->string('status');
             $table->string('metode_pembayaran');
             $table->integer('subtotal');
             $table->integer('diskon')->nullable();
             $table->integer('tagihan');
             $table->integer('bayar');
+            $table->integer('harga');
             $table->timestamps();
         });
     }

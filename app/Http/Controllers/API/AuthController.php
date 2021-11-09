@@ -10,6 +10,7 @@ use App\Traits\ApiResponser;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 use App\Models\User;
+use App\Models\Invite;
 use Validator;
 
 class AuthController extends Controller
@@ -21,28 +22,29 @@ class AuthController extends Controller
             'username' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'required|string'
+            // 'role' => 'required|string'
         ]);
 
         if($validator->fails()){
             return $this->error('Register Failed!', [ 'message' => $validator->errors()], 400);       
         }
 
-        if($request->role == 'owner'){
-            $inputRole = 'owner';
-        }elseif($request->role == 'admin'){
-            $inputRole = 'admin';
-        }else{
-            $inputRole = 'karyawan';
-        }
+        // if($request->role == 'owner'){
+        //     $inputRole = 'owner';
+        // }elseif($request->role == 'admin'){
+        //     $inputRole = 'admin';
+        // }else{
+        //     $inputRole = 'karyawan';
+        // }
         $uuid = Str::uuid();
         $input = [
             'uid' => $uuid,
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => "owner",
         ];
-        $input = Arr::add($input, 'role' ,$inputRole);
+        // $input = Arr::add($input, 'role' ,$inputRole);
 
         $user = User::create($input);
 
@@ -84,4 +86,36 @@ class AuthController extends Controller
             return $this->error(report($e));
         }
     }
+
+    public function registerKaryawan(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            'username' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'token' => 'required|string',
+        ]);
+
+        if($validator->fails()){
+            return $this->error('Register Failed!', [ 'message' => $validator->errors()], 400);       
+        }
+
+        $token = Invite::where('token', $request->token)->first();
+        $uuid = Str::uuid();
+        $input = [
+            'uid' => $uuid,
+            'username' => $request->username,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => "karyawan",
+            'outlet_id' => $token->idoutlet,
+        ];
+
+        $user = User::create($input);
+
+        $token->delete();
+
+        return $this->success('Register Success!');
+    }
+    
 }

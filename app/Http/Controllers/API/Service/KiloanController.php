@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\ApiResponser;
+use Illuminate\Support\Str;
 use App\Models\Kiloan;
 use Validator;
 
@@ -28,8 +29,10 @@ class KiloanController extends Controller
         if (Kiloan::where('nama_layanan', '=', $request->nama_layanan)->exists()) {
             return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
         }
-        
+
+        $uuid = Str::uuid();
         $waktu = Kiloan::create([
+            'id' => $uuid,
             'nama_layanan' => $request->nama_layanan,
             'waktu' => $request->waktu,
             'jenis' => 'kiloan',

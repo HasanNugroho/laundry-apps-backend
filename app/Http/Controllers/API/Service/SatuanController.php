@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\ApiResponser;
+use Illuminate\Support\Str;
 use App\Models\Satuan;
 use Validator;
 
@@ -31,7 +32,9 @@ class SatuanController extends Controller
             return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
         }
         
+        $uuid = Str::uuid();
         $waktu = Satuan::create([
+            'id' => $uuid,
             'nama_layanan' => $request->nama_layanan,
             'harga' => $request->harga,
             'kategori' => $request->kategori,

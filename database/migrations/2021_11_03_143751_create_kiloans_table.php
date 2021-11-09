@@ -14,14 +14,14 @@ class CreateKiloansTable extends Migration
     public function up()
     {
         Schema::create('kiloans', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id');
             $table->string('nama_layanan');
             $table->integer('harga');
-            $table->string('idwaktu');
+            $table->uuid('idwaktu');
             $table->string('jenis')->nullable();
             $table->boolean('status');
             $table->string('item')->nullable();
-            $table->string('idoutlet')->nullable();
+            $table->uuid('idoutlet')->nullable();
             $table->timestamps();
         });
     }

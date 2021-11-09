@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\ApiResponser;
+use Illuminate\Support\Str;
 use App\Models\Waktu;
 use Validator;
 
@@ -30,7 +31,9 @@ class WaktuController extends Controller
             return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
         }
         
+        $uuid = Str::uuid();
         $waktu = Waktu::create([
+            'id' => $uuid,
             'nama' => $request->nama,
             'waktu' => $request->waktu,
             'jenis' => $request->jenis,

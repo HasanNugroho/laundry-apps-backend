@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Waktu extends Model
 {
     use HasFactory;
+    protected $primaryKey = 'id';
     protected $fillable = [
+        'id',
         'nama',
         'waktu',
         'jenis',
@@ -16,8 +18,7 @@ class Waktu extends Model
         'paket',
         'idoutlet',
     ];
-    // protected $casts = [
-    //     'created_at' => 'datetime',
-    //     'updated_at' => 'datetime',
-    // ];
+    protected $casts = [
+        'id' => 'string',
+    ];
 }

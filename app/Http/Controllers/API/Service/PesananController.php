@@ -4,10 +4,12 @@ namespace App\Http\Controllers\API\Service;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Traits\ApiResponser;
 use Illuminate\Support\Str;
+use Illuminate\Support\Arr;
 use App\Models\Pembayaran;
 use App\Models\Pesanan;
 use App\Models\Kiloan;
@@ -68,35 +70,62 @@ class PesananController extends Controller
             'jenis_layanan' => 'required|string',
         ];
         $validator = Validator::make($request->all(),$validate);
-        // dd($validator);
+
         if($validator->fails()){
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
 
         // dd($request);
         if($request->jenis_layanan == 'kiloan'){
-            $datapesanan = DB::table('waktus')
-            ->join('kiloans', 'waktus.id', '=', 'kiloans.idwaktu')
-            ->select('waktus.id', 'waktus.waktu', 'waktus.paket', 'kiloans.nama_layanan', 'kiloans.jenis', 'kiloans.item')->where('kiloans.idwaktu', '=', $request->idlayanan)
-            ->get();
+            try {
+                $kiloan = DB::table('kiloans')
+                ->where('id', $request->idlayanan)
+                ->where('idwaktu', $request->idwaktu)
+                ->where('idoutlet', Auth::user()['outlet_id'])
+                ->first();
+        
+
+                $inputLayanan = $kiloan->nama_layanan;
+                $inputjenisLayanan = $kiloan->jenis;
+                
+                $inputHarga = $kiloan->harga;
+
+            } catch (Throwable $th) {
+                report($th);
+                return $this->error('Failed!', [ 'message' => "data not found!, check again"], 400);       
+            }
         }
         
         if($request->jenis_layanan == 'satuan'){
-            $datapesanan = DB::table('waktus')
-            ->join('satuans', 'waktus.id', '=', 'satuans.idwaktu')
-            ->select('waktus.id', 'waktus.waktu', 'waktus.paket', 'satuans.nama_layanan', 'satuans.kategori', 'satuans.jenis', 'satuans.item')->where('satuans.idwaktu', '=', $request->idlayanan)
-            ->get();
-            
-            $insert = [
-                'kategori' => $datapesanan->kategori ? $datapesanan->kategori : null,
-            ];
+            try {
+                $satuan = DB::table('satuans')
+                    ->where('idwaktu', $request->idwaktu)
+                    ->where('id', $request->idlayanan)
+                    ->where('idoutlet', Auth::user()['outlet_id'])
+                    ->first();
 
+                $input = Arr::add($input, 'kategori' ,$satuan->kategori);
+
+                $inputLayanan = $satuan->nama_layanan;
+                $inputjenisLayanan = $satuan->jenis;
+                
+                $inputHarga = $satuan->harga;
+            } catch (Throwable $th) {
+                report($th);
+
+                return $this->error('Failed!', [ 'message' => "data not found!, check again"], 400);       
+            }
         }
-        $datapesanan = $datapesanan[0];
-        $deadline = Carbon::now()->addHours($datapesanan->waktu)->format('Y M d H:i:s'); 
-        // $current = Carbon::now()->addHours(48); 
-        // $current = Carbon::create($current);
 
+        // get data waktu
+        $waktu = DB::table('waktus')
+            ->where('id', $request->idwaktu)
+            ->where('idoutlet', Auth::user()['outlet_id'])
+            ->first();
+
+        $deadline = Carbon::now()->addHours($waktu->waktu); 
+
+        $nota = IdGenerator::generate(['table' => 'pesanans', 'length' => 20, 'prefix' => $waktu->paket . "" . date('Ymd')]);
         $uuid = Str::uuid();
         $insert = [
             'id' => $uuid,
@@ -104,16 +133,12 @@ class PesananController extends Controller
             'whatsapp' => $request->whatsapp,
             'note' => $request->note,
             'deadline' => $deadline,
-            'nota_transaksi' => $request->nota_transaksi,
+            'nota_transaksi' => $nota,
             'jumlah' => $request->jumlah,
-            'layanan' => $datapesanan->nama_layanan,
-            'jenis_layanan' => $datapesanan->jenis,
-            'paket' => $datapesanan->paket,
+            'paket' => $waktu->paket,
             'status' => 'antrian',
             'outletid' => Auth::user()['outlet_id'],
             'kasir' => Auth::user()['username'],
-
-            
         ];
         $insertPembayaran = [
             'idpesanan' => $uuid,
@@ -125,8 +150,20 @@ class PesananController extends Controller
             'metode_pembayaran' => $request->metode_pembayaran ? $request->metode_pembayaran : 'Cash',
         ];
 
-        return $this->success('Success!', [$insert, $insertPembayaran]);
+        $insert = Arr::add($insert, 'layanan' ,$inputLayanan);
+        $insert = Arr::add($insert, 'jenis_layanan' ,$inputjenisLayanan);
+        
+        $insertPembayaran = Arr::add($insertPembayaran, 'harga' ,$inputHarga);
+        
+        try {
+            Pesanan::create($insert);
+            Pembayaran::create($insertPembayaran);
+            return $this->success('Success!', [$nota, $insert, $insertPembayaran]);
+        } catch (Throwable $th) {
+            report($th);
 
+            return $this->error('Failed!', [ 'message' => $th], 400);       
+        }
 
     }
 }

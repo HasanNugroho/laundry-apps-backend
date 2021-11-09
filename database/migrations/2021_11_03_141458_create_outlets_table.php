@@ -17,6 +17,7 @@ class CreateOutletsTable extends Migration
             $table->uuid('id');
             $table->string('nama_outlet');
             $table->string('status_outlet');
+            $table->uuid('parent')->nullable();
             $table->text('alamat')->nullable();
             $table->text('sosial_media')->nullable();
             $table->timestamps();

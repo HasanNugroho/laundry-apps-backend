@@ -24,7 +24,8 @@ class CreatePesanansTable extends Migration
             $table->string('whatsapp');
             $table->string('note')->nullable();
             $table->string('paket')->nullable();
-            $table->string('outletid');
+            $table->uuid('outletid');
+            $table->string('jenis_layanan');
             $table->integer('jumlah');
             $table->string('kasir');
             $table->timestamps();

@@ -21,6 +21,7 @@ class Pesanan extends Model
         'outletid',
         'kategori',
         'jumlah',
+        'jenis_layanan',
         'paket',
         'kasir',
     ];
