@@ -20,7 +20,7 @@ class OutletController extends Controller
     {
         $validator = Validator::make($request->all(),[
             'nama_outlet' => 'required|string|max:255',
-            'status_outlet' => 'required|string|max:255',
+            // 'status_outlet' => 'required|string|max:255',
             'alamat' => 'string|max:255',
             'sosial_media' => 'string|max:255',
         ]);
