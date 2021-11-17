@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Validator;
+use Illuminate\Support\Facades\DB;
 use App\Traits\ApiResponser;
 use App\Models\Invite;
 use App\Models\User;
@@ -16,6 +17,24 @@ use Illuminate\Support\Facades\Auth;
 class OutletController extends Controller
 {
     use ApiResponser;
+    public function show()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        $outlet = Outlet::where('id', $user_outlet)->orWhere('parent', $user_outlet)->get();
+        return $this->success(' Success!',[
+            'data' => $outlet
+        ]);
+    }
+    
+    public function showbyid($id)
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        $outlet = Outlet::where('id', $id)->first();
+        return $this->success(' Success!',[
+            'data' => $outlet
+        ]);
+    }
+    
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(),[

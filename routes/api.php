@@ -37,6 +37,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 //outlet
 Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
+    Route::get('/outlet', [OutletController::class, 'show']);
+    Route::get('/outlet/{id}', [OutletController::class, 'showbyid']);
     Route::post('/outlet', [OutletController::class, 'create']);
     Route::post('/outlet/cabang', [OutletController::class, 'tambahCabang']);
     Route::post('/outlet/invite', [OutletController::class, 'invite']);
