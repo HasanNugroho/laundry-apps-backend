@@ -39,7 +39,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
     Route::post('/outlet', [OutletController::class, 'create']);
     Route::post('/outlet/cabang', [OutletController::class, 'tambahCabang']);
-    Route::post('/invite', [OutletController::class, 'invite']);
+    Route::post('/outlet/invite', [OutletController::class, 'invite']);
 });
 
 // Waktu

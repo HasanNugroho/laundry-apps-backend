@@ -22,6 +22,8 @@ class AuthController extends Controller
             'username' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
+            'whatsapp' => 'required|string',
+            'alamat' => 'required|string',
             // 'role' => 'required|string'
         ]);
 
@@ -41,6 +43,8 @@ class AuthController extends Controller
             'uid' => $uuid,
             'username' => $request->username,
             'email' => $request->email,
+            'whatsapp' => $request->whatsapp,
+            'alamat' => $request->alamat,
             'password' => Hash::make($request->password),
             'role' => "owner",
         ];
@@ -94,6 +98,8 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'token' => 'required|string',
+            'whatsapp' => 'required|string',
+            'alamat' => 'required|string',
         ]);
 
         if($validator->fails()){
@@ -101,15 +107,19 @@ class AuthController extends Controller
         }
 
         $token = Invite::where('token', $request->token)->first();
-        $uuid = Str::uuid();
-        $input = [
-            'uid' => $uuid,
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => "karyawan",
-            'outlet_id' => $token->idoutlet,
-        ];
+        if($token){
+            $uuid = Str::uuid();
+            $input = [
+                'uid' => $uuid,
+                'username' => $request->username,
+                'email' => $request->email,
+                'alamat' => $request->alamat,
+                'whatsapp' => $request->whatsapp,
+                'password' => Hash::make($request->password),
+                'role' => "karyawan",
+                'outlet_id' => $token->idoutlet,
+            ];
+        }
 
         $user = User::create($input);
 

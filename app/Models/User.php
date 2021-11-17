@@ -22,7 +22,9 @@ class User extends Authenticatable
         'uid',
         'username',
         'email',
+        'whatsapp',
         'role',
+        'alamat',
         'password',
         'outlet_id',
     ];
