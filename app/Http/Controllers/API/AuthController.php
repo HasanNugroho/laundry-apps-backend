@@ -76,7 +76,8 @@ class AuthController extends Controller
         $token = $user->createToken($user->uid)->plainTextToken;
 
         return $this->success('Authorized', [
-            'token' => $token
+            'token' => $token,
+            'data' => $user
         ]);
     }
 

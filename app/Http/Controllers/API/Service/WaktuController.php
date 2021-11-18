@@ -19,7 +19,6 @@ class WaktuController extends Controller
             'nama' => 'required|string|max:255',
             'waktu' => 'required|integer',
             'jenis' => 'required|string',
-            'status' => 'required|boolean',
             'paket' => 'required|string'
         ]);
 
@@ -37,7 +36,7 @@ class WaktuController extends Controller
             'nama' => $request->nama,
             'waktu' => $request->waktu,
             'jenis' => $request->jenis,
-            'status' => $request->status,
+            'status' => 1,
             'paket' => $request->paket,
             'idoutlet' => Auth::user()['outlet_id']
         ]);
