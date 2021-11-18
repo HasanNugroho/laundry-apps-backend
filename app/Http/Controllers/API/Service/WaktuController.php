@@ -64,11 +64,11 @@ class WaktuController extends Controller
     public function update($id, Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'nama' => 'required|string|max:255',
-            'waktu' => 'required|integer',
-            'jenis' => 'required|string',
-            'status' => 'required|boolean',
-            'paket' => 'required|string'
+            'nama' => 'string|max:255',
+            'waktu' => 'integer',
+            'jenis' => 'string',
+            'status' => 'boolean',
+            'paket' => 'string'
         ]);
 
         if($validator->fails()){
