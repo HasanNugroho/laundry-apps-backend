@@ -68,27 +68,24 @@ class SatuanController extends Controller
     public function update($id, Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'nama_layanan' => 'required|string|max:255',
-            'harga' => 'required|integer',
-            'status' => 'required|boolean',
-            'kategori' => 'required|string',
-            'item' => 'required|string',
+            'nama_layanan' => 'string|max:255|unique:satuans',
+            'harga' => 'integer',
+            'status' => 'boolean',
+            'kategori' => 'string',
+            'item' => 'string',
             'idwaktu' => 'string'
         ]);
 
         if($validator->fails()){
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
+        
 
-        $waktu = Satuan::find($id)->update([
-            'nama_layanan' => $request->nama_layanan,
-            'harga' => $request->harga,
-            'kategori' => $request->kategori,
-            'status' => $request->status,
-            'item' => $request->item,
-            'idwaktu' => $request->idwaktu,
-            'idoutlet' => Auth::user()['outlet_id']
-        ]);
+        if($request->all()){
+            $waktu = Satuan::find($id)->update($request->all());
+        }else{
+            return $this->error('Failed!', [ 'message' => 'no data to update!'], 404);       
+        }
 
         if($waktu){
             return $this->success('Success!', "successfully updated data!");

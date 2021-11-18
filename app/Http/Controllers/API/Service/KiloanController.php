@@ -17,9 +17,10 @@ class KiloanController extends Controller
     {
         $validator = Validator::make($request->all(),[
             'nama_layanan' => 'required|string|max:255',
-            'status' => 'required|boolean',
+            'status' => 'required|integer',
             'item' => 'string',
             'idwaktu' => 'required|string',
+            'harga' => 'required|integer',
         ]);
 
         if($validator->fails()){
@@ -34,7 +35,7 @@ class KiloanController extends Controller
         $waktu = Kiloan::create([
             'id' => $uuid,
             'nama_layanan' => $request->nama_layanan,
-            'waktu' => $request->waktu,
+            // 'waktu' => $request->waktu,
             'jenis' => 'kiloan',
             'status' => $request->status,
             'item' => $request->item,
@@ -66,27 +67,23 @@ class KiloanController extends Controller
     public function update($id, Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'nama_layanan' => 'required|string|max:255',
+            'nama_layanan' => 'string|max:255|unique:kiloans',
             'jenis' => 'string',
-            'status' => 'required|boolean',
+            'status' => 'boolean',
             'item' => 'string',
-            'idwaktu' => 'required|string',
-            'harga' => 'required|integer'
+            'idwaktu' => 'string',
+            'harga' => 'integer'
         ]);
 
         if($validator->fails()){
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
-
-        $waktu = Kiloan::find($id)->update([
-            'nama_layanan' => $request->nama_layanan,
-            'waktu' => $request->waktu,
-            'jenis' => $request->jenis,
-            'status' => $request->status,
-            'item' => $request->item,
-            'harga' => $request->harga,
-            'idwaktu' => $request->idwaktu
-        ]);
+        
+        if($request->all()){
+            $waktu = Kiloan::find($id)->update($request->all());
+        }else{
+            return $this->error('Failed!', [ 'message' => 'no data to update!'], 404);       
+        }
 
         if($waktu){
             return $this->success('Success!', "successfully updated data!");

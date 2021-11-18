@@ -58,28 +58,28 @@ Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
 
 //Kiloan
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::get('/kiloan', [KiloanController::class, 'show']);
-    Route::get('/kiloan/{id}', [KiloanController::class, 'showById']);
+    Route::get('/service/kiloan', [KiloanController::class, 'show']);
+    Route::get('/service/kiloan/{id}', [KiloanController::class, 'showById']);
 });
 
 Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
-    Route::post('/kiloan', [KiloanController::class, 'create']);
-    Route::put('/kiloan/{id}', [KiloanController::class, 'update']);
-    Route::delete('/kiloan/{id}', [KiloanController::class, 'delete']);
+    Route::post('/service/kiloan', [KiloanController::class, 'create']);
+    Route::put('/service/kiloan/{id}', [KiloanController::class, 'update']);
+    Route::delete('/service/kiloan/{id}', [KiloanController::class, 'delete']);
 });
 
 //satuan
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::get('/satuan', [SatuanController::class, 'show']);
-    Route::get('/satuan/{id}', [SatuanController::class, 'showById']);
+    Route::get('/service/satuan', [SatuanController::class, 'show']);
+    Route::get('/service/satuan/{id}', [SatuanController::class, 'showById']);
 });
 
 Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
-    Route::post('/satuan', [SatuanController::class, 'create']);
-    Route::put('/satuan/{id}', [SatuanController::class, 'update']);
-    Route::delete('/satuan/{id}', [SatuanController::class, 'delete']);
+    Route::post('/service/satuan', [SatuanController::class, 'create']);
+    Route::put('/service/satuan/{id}', [SatuanController::class, 'update']);
+    Route::delete('/service/satuan/{id}', [SatuanController::class, 'delete']);
 });
 
-Route::fallback(function () {
-    return Response::json(["error" => "not found"], 404);
-});
+// Route::fallback(function () {
+//     return Response::json(["error" => "not found"], 404);
+// });

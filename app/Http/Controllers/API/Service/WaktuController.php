@@ -74,8 +74,12 @@ class WaktuController extends Controller
         if($validator->fails()){
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
-
-        $waktu = Waktu::find($id)->update($request->all());
+        
+        if($request->all()){
+            $waktu = Waktu::find($id)->update($request->all());
+        }else{
+            return $this->error('Failed!', [ 'message' => 'no data to update!'], 404);       
+        }
 
         if($waktu){
             return $this->success('Success!', "successfully updated data!");
