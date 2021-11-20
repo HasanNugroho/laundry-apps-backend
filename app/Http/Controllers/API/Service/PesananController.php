@@ -23,29 +23,9 @@ class PesananController extends Controller
     use ApiResponser;
     public function create(Request $request)
     {
-        if($request->idpelanggan){
-            $validate = [
-                'idpelanggan' => 'required|string',
-            ];
-        }
-        if($request->nama_pelanggan){
-            $validate = [
-                'nama_pelanggan' => 'required|string',
-            ];
-        }
         if($request->note){
             $validate = [
                 'note' => 'required|string',
-            ];
-        }
-        if($request->whatsapp){
-            $validate = [
-                'whatsapp' => 'required|string',
-            ];
-        }
-        if($request->alamat){
-            $validate = [
-                'alamat' => 'required|string',
             ];
         }
         if($request->metode_pembayaran){
@@ -68,6 +48,7 @@ class PesananController extends Controller
             'subtotal' => 'required|integer',
             'bayar' => 'required|integer',
             'jenis_layanan' => 'required|string',
+            'idpelanggan' => 'required|string'
         ];
         $validator = Validator::make($request->all(),$validate);
 
@@ -75,6 +56,7 @@ class PesananController extends Controller
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
 
+        $insert = [];
         // dd($request);
         if($request->jenis_layanan == 'kiloan'){
             try {
@@ -104,7 +86,7 @@ class PesananController extends Controller
                     ->where('idoutlet', Auth::user()['outlet_id'])
                     ->first();
 
-                $input = Arr::add($input, 'kategori' ,$satuan->kategori);
+                $input = Arr::add($insert, 'kategori' ,$satuan->kategori);
 
                 $inputLayanan = $satuan->nama_layanan;
                 $inputjenisLayanan = $satuan->jenis;
@@ -129,8 +111,7 @@ class PesananController extends Controller
         $uuid = Str::uuid();
         $insert = [
             'id' => $uuid,
-            'nama_pelanggan' => $request->nama_pelanggan,
-            'whatsapp' => $request->whatsapp,
+            'idpelanggan' => $request->idpelanggan,
             'note' => $request->note,
             'deadline' => $deadline,
             'nota_transaksi' => $nota,

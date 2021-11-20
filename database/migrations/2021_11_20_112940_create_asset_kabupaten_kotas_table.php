@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePelanggansTable extends Migration
+class CreateAssetKabupatenKotasTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,10 @@ class CreatePelanggansTable extends Migration
      */
     public function up()
     {
-        Schema::create('pelanggans', function (Blueprint $table) {
-            $table->uuid('id');
+        Schema::create('asset_kabupaten_kotas', function (Blueprint $table) {
+            $table->string('id');
+            $table->string('id_provinsi');
             $table->string('nama');
-            $table->string('whatsapp');
-            $table->text('alamat');
             $table->timestamps();
         });
     }
@@ -29,6 +28,6 @@ class CreatePelanggansTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('pelanggans');
+        Schema::dropIfExists('asset_kabupaten_kotas');
     }
 }

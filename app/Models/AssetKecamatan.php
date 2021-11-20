@@ -5,17 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Pelanggan extends Model
+class AssetKecamatan extends Model
 {
     use HasFactory;
-    protected $primaryKey = 'id';
+    public $incrementing = FALSE;
     protected $fillable = [
         'id',
+        'id_kota',
         'nama',
-        'alamat',
-        'whatsapp',
-    ];
-    protected $casts = [
-        'id' => 'string',
     ];
 }

@@ -11,12 +11,11 @@ class Pesanan extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         'id',
-        'nama_pelanggan',
+        'idpelanggan',
         'layanan',
         'deadline',
         'nota_transaksi',
         'status',
-        'whatsapp',
         'note',
         'outletid',
         'kategori',

@@ -4,60 +4,65 @@ namespace App\Http\Controllers\API\Service;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Traits\ApiResponser;
 use Illuminate\Support\Str;
-use App\Models\Waktu;
+use App\Models\Pelanggan;
 use Validator;
 
-class WaktuController extends Controller
+class PelangganController extends Controller
 {
     use ApiResponser;
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(),[
             'nama' => 'required|string|max:255',
-            'waktu' => 'required|integer',
-            'jenis' => 'required|string',
-            'paket' => 'required|string'
+            'alamat' => 'required|string',
+            'whatsapp' => 'required|string'
         ]);
 
         if($validator->fails()){
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
 
-        if (Waktu::where('nama', '=', $request->nama)->exists()) {
+        if (Pelanggan::where('nama', '=', $request->nama)->exists()) {
             return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
         }
         
         $uuid = Str::uuid();
-        $waktu = Waktu::create([
+        $pelanggan = Pelanggan::create([
             'id' => $uuid,
             'nama' => $request->nama,
-            'waktu' => $request->waktu,
-            'jenis' => $request->jenis,
-            'status' => 1,
-            'paket' => $request->paket,
-            'idoutlet' => Auth::user()['outlet_id']
+            'alamat' => $request->alamat,
+            'whatsapp' => $request->whatsapp,
         ]);
 
-        return $this->success('Success!',"successfully created data!");
+        if($pelanggan){
+            return $this->success('Success!', "successfully added data!");
+        }else{
+            return $this->error('Failed!', [ 'message' => $pelanggan->errors()], 400);       
+        }
     }
 
     public function show()
     {
-        $waktu = Waktu::where('status', 1)->get();
-        return $this->success('Success!', $waktu);
-    }
-
-    public function showById($id)
-    {
-        $waktu = Waktu::where('id', $id)->where('status', 1)->first();
-        // dd($waktu);
-        if($waktu != null){
-            return $this->success('Success!', $waktu);
+        $data_pelanggan = Pelanggan::all();
+        
+        if($data_pelanggan){
+            return $this->success('Success!',$data_pelanggan);
         }else{
-            return $this->error('Failed', null, 404);
+            return $this->error('Failed!', [ 'message' => $data_pelanggan->errors()], 400);       
+        }
+
+    }
+    
+    public function showbyid($id)
+    {
+        $data_pelanggan = Pelanggan::where('id', $id)->first();
+        
+        if($data_pelanggan){
+            return $this->success('Success!',$data_pelanggan);
+        }else{
+            return $this->error('Failed!', [ 'message' => $data_pelanggan->errors()], 400);       
         }
     }
 
@@ -65,31 +70,30 @@ class WaktuController extends Controller
     {
         $validator = Validator::make($request->all(),[
             'nama' => 'string|max:255',
-            'waktu' => 'integer',
-            'jenis' => 'string',
-            'status' => 'boolean',
-            'paket' => 'string'
+            'alamat' => 'string',
+            'whatsapp' => 'string'
         ]);
 
         if($validator->fails()){
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
-        
+
         if($request->all()){
-            $waktu = Waktu::find($id)->update($request->all());
+            $pelanggan = Pelanggan::find($id)->update($request->all());
         }else{
             return $this->error('Failed!', [ 'message' => 'no data to update!'], 404);       
         }
 
-        if($waktu){
+        if($pelanggan){
             return $this->success('Success!', "successfully updated data!");
         }else{
-            return $this->error('Failed!', [ 'message' => $waktu->errors()], 400);       
+            return $this->error('Failed!', [ 'message' => $pelanggan->errors()], 400);       
         }
     }
+
     public function delete($id)
     {
-        $delete = Waktu::find($id)->delete();
+        $delete = Pelanggan::find($id)->delete();
         
         if($delete){
             return $this->success('Success!', "successfully deleted data!");

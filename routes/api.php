@@ -3,11 +3,13 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\AssetController;
 use App\Http\Controllers\API\Service\WaktuController;
 use App\Http\Controllers\API\Service\OutletController;
 use App\Http\Controllers\API\Service\KiloanController;
 use App\Http\Controllers\API\Service\SatuanController;
 use App\Http\Controllers\API\Service\PesananController;
+use App\Http\Controllers\API\Service\PelangganController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +29,15 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+//pelanggan
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::post('/pelanggan', [PelangganController::class, 'create']);
+    Route::get('/pelanggan', [PelangganController::class, 'show']);
+    Route::get('/pelanggan/{id}', [PelangganController::class, 'showbyid']);
+    Route::put('/pelanggan/{id}', [PelangganController::class, 'update']);
+    Route::delete('/pelanggan/{id}', [PelangganController::class, 'delete']);
 });
 
 // pesanan
@@ -80,6 +91,18 @@ Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
     Route::delete('/service/satuan/{id}', [SatuanController::class, 'delete']);
 });
 
-// Route::fallback(function () {
-//     return Response::json(["error" => "not found"], 404);
-// });
+Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
+    Route::post('/provinsi', [AssetController::class, 'provinsi']);
+    Route::post('/kabupaten', [AssetController::class, 'kabupaten']);
+    Route::post('/kecamatan', [AssetController::class, 'kecamatan']);
+    Route::post('/kelurahan', [AssetController::class, 'kelurahan']);
+    Route::get('/kelurahan/{id}', [AssetController::class, 'get_kelurahan']);
+    Route::get('/kabupaten_kota/{id}', [AssetController::class, 'get_kabupaten']);
+    Route::get('/kecamatan/{id}', [AssetController::class, 'get_kecamatan']);
+    Route::get('/provinsi', [AssetController::class, 'get_provinsi']);
+});
+
+
+Route::fallback(function () {
+    return Response::json(["error" => "not found"], 404);
+});
