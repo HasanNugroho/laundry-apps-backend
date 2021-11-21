@@ -45,6 +45,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'whatsapp' => $request->whatsapp,
             'alamat' => $request->alamat,
+            'status' => 'INACTIVE',
             'password' => Hash::make($request->password),
             'role' => "owner",
         ];
@@ -75,6 +76,8 @@ class AuthController extends Controller
 
         $token = $user->createToken($user->uid)->plainTextToken;
 
+        User::where('email', $request['email'])->update(['status' => 'ACTIVE']);
+
         return $this->success('Authorized', [
             'token' => $token,
             'data' => $user
@@ -86,6 +89,7 @@ class AuthController extends Controller
     {
         try {
             auth()->user()->tokens()->delete();
+            User::where('uid', Auth::user()['uid'])->update(['status' => 'INACTIVE']);
             return $this->success('Logout Success!');
         } catch (Throwable $e) {
             return $this->error(report($e));
@@ -118,6 +122,7 @@ class AuthController extends Controller
                 'whatsapp' => $request->whatsapp,
                 'password' => Hash::make($request->password),
                 'role' => "karyawan",
+                'status' => 'INACTIVE',
                 'outlet_id' => $token->idoutlet,
             ];
         }

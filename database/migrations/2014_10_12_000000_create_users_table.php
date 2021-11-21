@@ -21,6 +21,7 @@ class CreateUsersTable extends Migration
             $table->string('role');
             $table->string('alamat', 500);
             $table->string('whatsapp');
+            $table->string('status');
             $table->uuid('outlet_id')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();

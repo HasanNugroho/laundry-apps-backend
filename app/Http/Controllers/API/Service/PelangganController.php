@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Service;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\Pelanggan;
 use Validator;
@@ -34,6 +35,7 @@ class PelangganController extends Controller
             'nama' => $request->nama,
             'alamat' => $request->alamat,
             'whatsapp' => $request->whatsapp,
+            'outletid' => Auth::user()['outlet_id'],
         ]);
 
         if($pelanggan){

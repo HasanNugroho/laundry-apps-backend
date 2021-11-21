@@ -5,16 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Pelanggan extends Model
+class Service extends Model
 {
     use HasFactory;
     protected $primaryKey = 'id';
     protected $fillable = [
         'id',
-        'nama',
-        'alamat',
-        'outletid',
-        'whatsapp',
+        'nama_layanan',
+        'harga',
+        'kategori',
+        'idwaktu',
+        'jenis',
+        'item',
+        'status',
+        'idoutlet',
     ];
     protected $casts = [
         'id' => 'string',

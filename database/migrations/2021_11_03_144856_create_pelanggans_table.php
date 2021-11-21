@@ -17,6 +17,7 @@ class CreatePelanggansTable extends Migration
             $table->uuid('id');
             $table->string('nama');
             $table->string('whatsapp');
+            $table->uuid('outletid');
             $table->text('alamat');
             $table->timestamps();
         });

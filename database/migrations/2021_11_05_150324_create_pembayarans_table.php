@@ -20,9 +20,9 @@ class CreatePembayaransTable extends Migration
             $table->string('metode_pembayaran');
             $table->integer('subtotal');
             $table->integer('diskon')->nullable();
+            $table->integer('utang')->nullable();
             $table->integer('tagihan');
             $table->integer('bayar');
-            $table->integer('harga');
             $table->timestamps();
         });
     }

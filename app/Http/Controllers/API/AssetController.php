@@ -9,9 +9,8 @@ use App\Models\AssetProvinsi;
 use App\Models\AssetKecamatan;
 use App\Models\AssetKabupaten_kota;
 use App\Models\AssetKelurahan;
+use App\Models\AssetStatus;
 use App\Traits\ApiResponser;
-
-
 
 class AssetController extends Controller
 {
@@ -138,4 +137,23 @@ class AssetController extends Controller
         }
     }
 
+    public function status_pesanan()
+    {
+        $status = AssetStatus::where('type', 'pesanan')->get();
+        if($status){
+            return $this->success('Success!', $status);
+        }else{
+            return $this->error('Failed!', [ 'message' => $status->errors()], 400);
+        }
+    }
+  
+    public function status_pembayaran()
+    {
+        $status = AssetStatus::where('type', 'pembayaran')->get();
+        if($status){
+            return $this->success('Success!', $status);
+        }else{
+            return $this->error('Failed!', [ 'message' => $status->errors()], 400);
+        }
+    }
 }

@@ -25,6 +25,7 @@ class User extends Authenticatable
         'whatsapp',
         'role',
         'alamat',
+        'status',
         'password',
         'outlet_id',
     ];

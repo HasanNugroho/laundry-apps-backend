@@ -8,6 +8,7 @@ use App\Http\Controllers\API\Service\WaktuController;
 use App\Http\Controllers\API\Service\OutletController;
 use App\Http\Controllers\API\Service\KiloanController;
 use App\Http\Controllers\API\Service\SatuanController;
+use App\Http\Controllers\API\Service\ServiceController;
 use App\Http\Controllers\API\Service\PesananController;
 use App\Http\Controllers\API\Service\PelangganController;
 
@@ -43,7 +44,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 // pesanan
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/pesanan', [PesananController::class, 'create']);
-    Route::get('/pesanan', [PesananController::class, 'show']);
+    Route::get('/pesanan/outlet/{outletid}/{status}', [PesananController::class, 'getPesanan']);
+    Route::get('/pesanan/{nota}', [PesananController::class, 'getPesanandetail']);
+    Route::put('/pesanan/status/{id}', [PesananController::class, 'updatestatus']);
 });
 
 //outlet
@@ -67,28 +70,40 @@ Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
     Route::delete('/waktu/{id}', [WaktuController::class, 'delete']);
 });
 
-//Kiloan
+// //Kiloan
+// Route::group(['middleware' => ['auth:sanctum']], function () {
+//     Route::get('/service/kiloan', [KiloanController::class, 'show']);
+//     Route::get('/service/kiloan/{id}', [KiloanController::class, 'showById']);
+// });
+
+// Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
+//     Route::post('/service/kiloan', [KiloanController::class, 'create']);
+//     Route::put('/service/kiloan/{id}', [KiloanController::class, 'update']);
+//     Route::delete('/service/kiloan/{id}', [KiloanController::class, 'delete']);
+// });
+
+// //satuan
+// Route::group(['middleware' => ['auth:sanctum']], function () {
+//     Route::get('/service/satuan', [SatuanController::class, 'show']);
+//     Route::get('/service/satuan/{id}', [SatuanController::class, 'showById']);
+// });
+
+// Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
+//     Route::post('/service/satuan', [SatuanController::class, 'create']);
+//     Route::put('/service/satuan/{id}', [SatuanController::class, 'update']);
+//     Route::delete('/service/satuan/{id}', [SatuanController::class, 'delete']);
+// });
+
+//service
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::get('/service/kiloan', [KiloanController::class, 'show']);
-    Route::get('/service/kiloan/{id}', [KiloanController::class, 'showById']);
+    Route::get('/service', [ServiceController::class, 'show']);
+    Route::get('/service/{id}', [ServiceController::class, 'showById']);
 });
 
 Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
-    Route::post('/service/kiloan', [KiloanController::class, 'create']);
-    Route::put('/service/kiloan/{id}', [KiloanController::class, 'update']);
-    Route::delete('/service/kiloan/{id}', [KiloanController::class, 'delete']);
-});
-
-//satuan
-Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::get('/service/satuan', [SatuanController::class, 'show']);
-    Route::get('/service/satuan/{id}', [SatuanController::class, 'showById']);
-});
-
-Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
-    Route::post('/service/satuan', [SatuanController::class, 'create']);
-    Route::put('/service/satuan/{id}', [SatuanController::class, 'update']);
-    Route::delete('/service/satuan/{id}', [SatuanController::class, 'delete']);
+    Route::post('/service', [ServiceController::class, 'create']);
+    Route::put('/service/{id}', [ServiceController::class, 'update']);
+    Route::delete('/service/{id}', [ServiceController::class, 'delete']);
 });
 
 Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
@@ -100,6 +115,12 @@ Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
     Route::get('/kabupaten_kota/{id}', [AssetController::class, 'get_kabupaten']);
     Route::get('/kecamatan/{id}', [AssetController::class, 'get_kecamatan']);
     Route::get('/provinsi', [AssetController::class, 'get_provinsi']);
+});
+
+//status
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('/status/pesanan', [AssetController::class, 'status_pesanan']);
+    Route::get('/status/pembayaran', [AssetController::class, 'status_pembayaran']);
 });
 
 

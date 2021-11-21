@@ -12,16 +12,14 @@ class Pesanan extends Model
     protected $fillable = [
         'id',
         'idpelanggan',
-        'layanan',
+        'note',
+        'idwaktu',
+        'idlayanan',
         'deadline',
         'nota_transaksi',
-        'status',
-        'note',
-        'outletid',
-        'kategori',
         'jumlah',
-        'jenis_layanan',
-        'paket',
+        'status',
+        'outletid',
         'kasir',
     ];
     protected $casts = [
