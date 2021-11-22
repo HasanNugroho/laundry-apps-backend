@@ -18,15 +18,20 @@ class AuthController extends Controller
     use ApiResponser;
     public function register(Request $request)
     {
+        // $agent = new \Jenssegers\Agent\Agent;
+        // $platform = $agent->platform();
+
+        // $version = $agent->isAndroidOS($platform);
+        // dd($version);
+        
         $validator = Validator::make($request->all(),[
             'username' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'whatsapp' => 'required|string',
+            'whatsapp' => 'required|string|unique:users',
             'alamat' => 'required|string',
             // 'role' => 'required|string'
         ]);
-
         if($validator->fails()){
             return $this->error('Register Failed!', [ 'message' => $validator->errors()], 400);       
         }
@@ -103,7 +108,7 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'token' => 'required|string',
-            'whatsapp' => 'required|string',
+            'whatsapp' => 'required|string|unique:users',
             'alamat' => 'required|string',
         ]);
 
