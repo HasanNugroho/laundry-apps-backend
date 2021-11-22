@@ -125,5 +125,5 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
 Route::fallback(function () {
-    return Response::json(["error" => "not found"], 404);
+    return Response::json("FORBIDDEN", 403);
 });
