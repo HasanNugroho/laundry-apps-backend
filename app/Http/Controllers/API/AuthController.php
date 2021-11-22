@@ -72,9 +72,13 @@ class AuthController extends Controller
             return $this->error('Login Failed!', [ 'message' => $validator->errors()], 400);       
         }
 
+        if (Service::where('email', '=', $request->email)->doesntExist()) {
+            return $this->error('Failed!', [ 'message' => 'User dont exist!'], 404);       
+        }
+
         if (!Auth::attempt($request->only('email', 'password')))
         {
-            return $this->error('Unauthorized',null , 401);
+            return $this->error('Email or Password is Incorrect', 401);
         }
 
         $user = User::where('email', $request['email'])->firstOrFail();
