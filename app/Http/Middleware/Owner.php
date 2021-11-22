@@ -18,13 +18,13 @@ class Owner
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role == 'owner') {
+        if (Auth::check() && Auth::user()['role'] == 'owner') {
             $acceptHeader = $request->header('Accept');
             if ($acceptHeader != 'application/json') {
                 return response()->json([
                     'status' => 'Forbidden',
                     'statusCode' => 406,
-                    'message' => 'Must using JSON',
+                    'message' => 'Must using header "Accept: application/json"',
                 ], 406);
             }
             return $next($request);
