@@ -72,7 +72,7 @@ class AuthController extends Controller
             return $this->error('Login Failed!', [ 'message' => $validator->errors()], 400);       
         }
 
-        if (Service::where('email', '=', $request->email)->doesntExist()) {
+        if (User::where('email', $request->email)->doesntExist()) {
             return $this->error('Failed!', [ 'message' => 'User dont exist!'], 404);       
         }
 
