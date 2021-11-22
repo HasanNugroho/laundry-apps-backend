@@ -50,7 +50,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 //outlet
-Route::group(['middleware' => 'owner'], function () {
+Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('/outlet', [OutletController::class, 'show']);
     Route::get('/outlet/{id}', [OutletController::class, 'showbyid']);
     Route::post('/outlet', [OutletController::class, 'create']);
@@ -64,7 +64,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/waktu/{id}', [WaktuController::class, 'showById']);
 });
 
-Route::group(['middleware' => 'owner'], function () {
+Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::post('/waktu', [WaktuController::class, 'create']);
     Route::put('/waktu/{id}', [WaktuController::class, 'update']);
     Route::delete('/waktu/{id}', [WaktuController::class, 'delete']);
@@ -100,13 +100,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/service/{id}', [ServiceController::class, 'showById']);
 });
 
-Route::group(['middleware' => 'owner'], function () {
+Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::post('/service', [ServiceController::class, 'create']);
     Route::put('/service/{id}', [ServiceController::class, 'update']);
     Route::delete('/service/{id}', [ServiceController::class, 'delete']);
 });
 
-Route::group(['middleware' => 'owner'], function () {
+Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::post('/provinsi', [AssetController::class, 'provinsi']);
     Route::post('/kabupaten', [AssetController::class, 'kabupaten']);
     Route::post('/kecamatan', [AssetController::class, 'kecamatan']);
