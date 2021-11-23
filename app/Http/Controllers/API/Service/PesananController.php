@@ -299,7 +299,7 @@ class PesananController extends Controller
         if($validator->fails()){
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
-        $update = Pesanan::where('id', $id)->update($request->all());
+        $update = Pesanan::where('id', $id)->update(['status' => $request->status]);
         
         if($update){
             return $this->success('Success!');
