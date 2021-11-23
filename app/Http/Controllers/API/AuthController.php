@@ -25,7 +25,7 @@ class AuthController extends Controller
         // dd($version);
         
         $validator = Validator::make($request->all(),[
-            'username' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'whatsapp' => 'required|string|unique:users',
@@ -78,7 +78,7 @@ class AuthController extends Controller
 
         if (!Auth::attempt($request->only('email', 'password')))
         {
-            return $this->error('Email or Password is Incorrect', 401);
+            return $this->error('Failed!', [ 'message' => 'Email or Password is Incorrect'], 401);       
         }
 
         $user = User::where('email', $request['email'])->firstOrFail();
@@ -108,7 +108,7 @@ class AuthController extends Controller
     public function registerKaryawan(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'username' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'token' => 'required|string',
@@ -118,6 +118,10 @@ class AuthController extends Controller
 
         if($validator->fails()){
             return $this->error('Register Failed!', [ 'message' => $validator->errors()], 400);       
+        }
+
+        if (Invite::where('token', $request->token)->doesntExist()) {
+            return $this->error('Failed!', [ 'message' => 'Token Expired'], 404);       
         }
 
         $token = Invite::where('token', $request->token)->first();

@@ -21,18 +21,14 @@ class OutletController extends Controller
     {
         $user_outlet = Auth::user()->outlet_id;
         $outlet = Outlet::where('id', $user_outlet)->orWhere('parent', $user_outlet)->get();
-        return $this->success(' Success!',[
-            'data' => $outlet
-        ]);
+        return $this->success(' Success!', $outlet);
     }
     
     public function showbyid($id)
     {
         $user_outlet = Auth::user()->outlet_id;
         $outlet = Outlet::where('id', $id)->first();
-        return $this->success(' Success!',[
-            'data' => $outlet
-        ]);
+        return $this->success(' Success!',$outlet);
     }
     
     public function create(Request $request)
@@ -61,9 +57,7 @@ class OutletController extends Controller
         ]);
         $user = User::where('uid', Auth::user()->uid)->update(['outlet_id' => $uuid]);
 
-        return $this->success('Create Outlet Success!',[
-            'data' => $outlet
-        ]);
+        return $this->success('Create Outlet Success!', $outlet);
     }
     
     public function tambahCabang(Request $request)
@@ -92,9 +86,7 @@ class OutletController extends Controller
         'sosial_media' => $request->sosial_media ? $request->sosial_media :null,
         ]);
 
-        return $this->success('Create Outlet Success!',[
-            'data' => $outlet
-        ]);
+        return $this->success('Create Outlet Success!', $outlet);
     }
 
     public function invite(Request $request)

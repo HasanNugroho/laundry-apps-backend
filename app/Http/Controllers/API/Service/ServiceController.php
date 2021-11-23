@@ -22,7 +22,8 @@ class ServiceController extends Controller
             'status' => 'required|boolean',
             'kategori' => 'string',
             'item' => 'required|string',
-            'idwaktu' => 'string'
+            'idwaktu' => 'string|uuid',
+            'idoutlet' => 'required|uuid'
         ]);
 
         if($validator->fails()){
@@ -43,7 +44,7 @@ class ServiceController extends Controller
             'item' => $request->item,
             'idwaktu' => $request->idwaktu,
             'jenis' => $jenis->jenis,
-            'idoutlet' => Auth::user()['outlet_id']
+            'idoutlet' => $request->idoutlet
         ]);
 
         return $this->success('Success!',"successfully created data!");
@@ -74,7 +75,7 @@ class ServiceController extends Controller
             'status' => 'boolean',
             'kategori' => 'string',
             'item' => 'string',
-            'idwaktu' => 'string'
+            'idwaktu' => 'string|uuid'
         ]);
 
         if($validator->fails()){

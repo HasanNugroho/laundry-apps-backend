@@ -61,17 +61,25 @@ class PesananController extends Controller
         }
 
         // get data waktu
+        // dd(Auth::user()['outlet_id']);
         $waktu = DB::table('waktus')
             ->where('id', $request->idwaktu)
             ->where('idoutlet', Auth::user()['outlet_id'])
             ->first();
+        if($waktu){
+            $deadline = Carbon::now()->addHours($waktu->waktu); 
+        }else{
+            return $this->error('Failed!', [ 'message' => 'Forbidden!'], 403);       
+        }
 
-        $deadline = Carbon::now()->addHours($waktu->waktu); 
-
-        $nota = IdGenerator::generate(['table' => 'pesanans', 'length' => 20, 'prefix' => $waktu->paket . "" . date('Ymd')]);
+        // dd($deadline->format('Y-m-d H:i:s'));
+        $nota = IdGenerator::generate(['table' => 'pesanans', 'length' => 20, 'prefix' => $waktu->paket . "" . date('Ymd'). Str::random(7)]);
         $uuid = Str::uuid();
 
         if (Waktu::where('id', '=', $uuid)->exists()) {
+            return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
+        }
+        if (Pesanan::where('nota_transaksi', '=', $nota)->exists()) {
             return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
         }
 
@@ -81,7 +89,7 @@ class PesananController extends Controller
             'note' => $request->note,
             'idwaktu' => $request->idwaktu,
             'idlayanan' => $request->idlayanan,
-            'deadline' => $deadline,
+            'deadline' => $deadline->format('Y-m-d H:i:s'),
             'nota_transaksi' => $nota,
             'jumlah' => $request->jumlah,
             // 'jenis_layanan' => $request->jenis_layanan,
@@ -297,6 +305,31 @@ class PesananController extends Controller
             return $this->success('Success!');
         }else{
             return $this->error('Failed!', [ 'message' => 'Update Data Failed!'], 400);
+        }
+    }
+
+    public function riwayat()
+    {
+        // $pesanan = Pesanan::select()->whereDate('created_at', Carbon::today())
+        // ->where('outletid', Auth::user()['outlet_id'])
+        // ->where('status', 'SELESAI')
+        // ->get();
+
+        $pesanan = DB::table('pesanans')
+            ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+            ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+            ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+            ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+            ->whereDate('pesanans.updated_at', Carbon::today())
+            ->where('pesanans.outletid', Auth::user()['outlet_id'])
+            // ->where('pesanans.status', 'SELESAI')
+            ->select('pelanggans.nama', 'pesanans.nota_transaksi', 'pembayarans.status', 'waktus.paket', 'services.nama_layanan')
+            ->get();
+        if($pesanan){
+            return $this->success('Success!', $pesanan);
+        }else{
+            return $this->error('Failed!', [ 'message' => 'Data Not Available!'], 400);
         }
     }
 }
