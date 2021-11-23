@@ -323,7 +323,31 @@ class PesananController extends Controller
             ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
             ->whereDate('pesanans.updated_at', Carbon::today())
             ->where('pesanans.outletid', Auth::user()['outlet_id'])
-            // ->where('pesanans.status', 'SELESAI')
+            ->where('pesanans.status', 'SELESAI')
+            ->select('pelanggans.nama', 'pesanans.nota_transaksi', 'pembayarans.status', 'waktus.paket', 'services.nama_layanan')
+            ->get();
+        if($pesanan){
+            return $this->success('Success!', $pesanan);
+        }else{
+            return $this->error('Failed!', [ 'message' => 'Data Not Available!'], 400);
+        }
+    }
+
+    public function riwayatall()
+    {
+        // $pesanan = Pesanan::select()->whereDate('created_at', Carbon::today())
+        // ->where('outletid', Auth::user()['outlet_id'])
+        // ->where('status', 'SELESAI')
+        // ->get();
+
+        $pesanan = DB::table('pesanans')
+            ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+            ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+            ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+            ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+            ->where('pesanans.outletid', Auth::user()['outlet_id'])
+            ->where('pesanans.status', 'SELESAI')
             ->select('pelanggans.nama', 'pesanans.nota_transaksi', 'pembayarans.status', 'waktus.paket', 'services.nama_layanan')
             ->get();
         if($pesanan){
