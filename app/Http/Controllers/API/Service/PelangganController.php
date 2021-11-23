@@ -47,7 +47,7 @@ class PelangganController extends Controller
 
     public function show()
     {
-        $data_pelanggan = Pelanggan::all();
+        $data_pelanggan = Pelanggan::select('id', 'nama', 'whatsapp', 'alamat')->where('outletid', Auth::user()['outlet_id'])->get();
         
         if($data_pelanggan){
             return $this->success('Success!',$data_pelanggan);

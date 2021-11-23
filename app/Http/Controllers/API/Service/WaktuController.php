@@ -19,7 +19,8 @@ class WaktuController extends Controller
             'nama' => 'required|string|max:255',
             'waktu' => 'required|integer',
             'jenis' => 'required|string',
-            'paket' => 'required|string'
+            'paket' => 'required|string',
+            'idoutlet' => 'required|uuid'
         ]);
 
         if($validator->fails()){
@@ -38,7 +39,7 @@ class WaktuController extends Controller
             'jenis' => $request->jenis,
             'status' => 1,
             'paket' => $request->paket,
-            'idoutlet' => Auth::user()['outlet_id']
+            'idoutlet' => $request->idoutlet
         ]);
 
         return $this->success('Success!',"successfully created data!");
@@ -46,7 +47,7 @@ class WaktuController extends Controller
 
     public function show()
     {
-        $waktu = Waktu::where('status', 1)->get();
+        $waktu = Waktu::where('status', 1)->where('idoutlet', Auth::user()['outlet_id'])->get();
         return $this->success('Success!', $waktu);
     }
 

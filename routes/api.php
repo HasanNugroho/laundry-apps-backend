@@ -123,7 +123,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/status/pembayaran', [AssetController::class, 'status_pembayaran']);
 });
 
+//riwayat
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('/riwayat', [PesananController::class, 'riwayat']);
+    Route::get('/riwayatall', [PesananController::class, 'riwayatall']);
+});
+
 
 Route::fallback(function () {
     return Response::json("FORBIDDEN", 403);
 });
+
