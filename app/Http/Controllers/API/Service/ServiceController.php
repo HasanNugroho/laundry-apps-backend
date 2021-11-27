@@ -52,13 +52,19 @@ class ServiceController extends Controller
 
     public function show()
     {
-        $waktu = Service::where('status', 1)->get();
+        $waktu = Service::where('status', 1)->where('idoutlet', Auth::user()['outlet_id'])->get();
+        return $this->success('Success!', $waktu);
+    }
+
+    public function showadmin()
+    {
+        $waktu = Service::all();
         return $this->success('Success!', $waktu);
     }
 
     public function showById($id)
     {
-        $waktu = Service::where('id', $id)->where('status', 1)->first();
+        $waktu = Service::where('id', $id)->where('status', 1)->where('idoutlet', Auth::user()['outlet_id'])->first();
         // dd($waktu);
         if($waktu != null){
             return $this->success('Success!', $waktu);
