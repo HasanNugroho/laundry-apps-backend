@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\AssetController;
+use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\Service\WaktuController;
 use App\Http\Controllers\API\Service\OutletController;
 // use App\Http\Controllers\API\Service\KiloanController;
@@ -58,41 +59,33 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::post('/outlet/invite', [OutletController::class, 'invite']);
 });
 
+Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
+    Route::get('/users', [UserController::class, 'showall']);
+    Route::get('/users/{id}', [UserController::class, 'showdetil']);
+    Route::put('/users/{id}', [UserController::class, 'updaterole']);
+});
+
 // Waktu
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/waktu', [WaktuController::class, 'show']);
     Route::get('/waktu/{id}', [WaktuController::class, 'showById']);
 });
 
+//owner
 Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
+    Route::get('/adwaktu', [WaktuController::class, 'showadmin']);
     Route::post('/waktu', [WaktuController::class, 'create']);
     Route::put('/waktu/{id}', [WaktuController::class, 'update']);
     Route::delete('/waktu/{id}', [WaktuController::class, 'delete']);
 });
 
-// //Kiloan
-// Route::group(['middleware' => ['auth:sanctum']], function () {
-//     Route::get('/service/kiloan', [KiloanController::class, 'show']);
-//     Route::get('/service/kiloan/{id}', [KiloanController::class, 'showById']);
-// });
-
-// Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
-//     Route::post('/service/kiloan', [KiloanController::class, 'create']);
-//     Route::put('/service/kiloan/{id}', [KiloanController::class, 'update']);
-//     Route::delete('/service/kiloan/{id}', [KiloanController::class, 'delete']);
-// });
-
-// //satuan
-// Route::group(['middleware' => ['auth:sanctum']], function () {
-//     Route::get('/service/satuan', [SatuanController::class, 'show']);
-//     Route::get('/service/satuan/{id}', [SatuanController::class, 'showById']);
-// });
-
-// Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
-//     Route::post('/service/satuan', [SatuanController::class, 'create']);
-//     Route::put('/service/satuan/{id}', [SatuanController::class, 'update']);
-//     Route::delete('/service/satuan/{id}', [SatuanController::class, 'delete']);
-// });
+//admin
+Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
+    Route::get('/adwaktu', [WaktuController::class, 'showadmin']);
+    Route::post('/waktu', [WaktuController::class, 'create']);
+    Route::put('/waktu/{id}', [WaktuController::class, 'update']);
+    Route::delete('/waktu/{id}', [WaktuController::class, 'delete']);
+});
 
 //service
 Route::group(['middleware' => ['auth:sanctum']], function () {
@@ -100,7 +93,17 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/service/{id}', [ServiceController::class, 'showById']);
 });
 
+//owner
 Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
+    Route::get('/adservice', [ServiceController::class, 'showadmin']);
+    Route::post('/service', [ServiceController::class, 'create']);
+    Route::put('/service/{id}', [ServiceController::class, 'update']);
+    Route::delete('/service/{id}', [ServiceController::class, 'delete']);
+});
+
+//admin
+Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
+    Route::get('/adservice', [ServiceController::class, 'showadmin']);
     Route::post('/service', [ServiceController::class, 'create']);
     Route::put('/service/{id}', [ServiceController::class, 'update']);
     Route::delete('/service/{id}', [ServiceController::class, 'delete']);
@@ -133,3 +136,27 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 Route::fallback(function () {
     return Response::json("FORBIDDEN", 403);
 });
+
+// //Kiloan
+// Route::group(['middleware' => ['auth:sanctum']], function () {
+//     Route::get('/service/kiloan', [KiloanController::class, 'show']);
+//     Route::get('/service/kiloan/{id}', [KiloanController::class, 'showById']);
+// });
+
+// Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
+//     Route::post('/service/kiloan', [KiloanController::class, 'create']);
+//     Route::put('/service/kiloan/{id}', [KiloanController::class, 'update']);
+//     Route::delete('/service/kiloan/{id}', [KiloanController::class, 'delete']);
+// });
+
+// //satuan
+// Route::group(['middleware' => ['auth:sanctum']], function () {
+//     Route::get('/service/satuan', [SatuanController::class, 'show']);
+//     Route::get('/service/satuan/{id}', [SatuanController::class, 'showById']);
+// });
+
+// Route::group(['middleware' => ['auth:sanctum'], 'owner'], function () {
+//     Route::post('/service/satuan', [SatuanController::class, 'create']);
+//     Route::put('/service/satuan/{id}', [SatuanController::class, 'update']);
+//     Route::delete('/service/satuan/{id}', [SatuanController::class, 'delete']);
+// });

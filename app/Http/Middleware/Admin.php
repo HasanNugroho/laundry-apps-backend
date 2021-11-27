@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class Admin
 {
@@ -16,13 +17,13 @@ class Admin
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role == 'admin') {
+        if (Auth::check() && Auth::user()['role'] == 'admin') {
             $acceptHeader = $request->header('Accept');
             if ($acceptHeader != 'application/json') {
                 return response()->json([
                     'status' => 'Forbidden',
                     'statusCode' => 406,
-                    'message' => 'Must using JSON',
+                    'message' => 'Must using header "Accept: application/json"',
                 ], 406);
             }
             return $next($request);

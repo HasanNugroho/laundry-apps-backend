@@ -51,9 +51,15 @@ class WaktuController extends Controller
         return $this->success('Success!', $waktu);
     }
 
+    public function showadmin()
+    {
+        $waktu = Waktu::all();
+        return $this->success('Success!', $waktu);
+    }
+
     public function showById($id)
     {
-        $waktu = Waktu::where('id', $id)->where('status', 1)->first();
+        $waktu = Waktu::where('id', $id)->where('status', 1)->where('idoutlet', Auth::user()['outlet_id'])->first();
         // dd($waktu);
         if($waktu != null){
             return $this->success('Success!', $waktu);
