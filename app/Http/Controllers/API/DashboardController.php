@@ -42,13 +42,17 @@ class DashboardController extends Controller
     public function pendapatan()
     {
         $pendapatan = Pembayaran::where('updated_at', '>=', Carbon::now()->subMonth())
+            ->where(DB::raw('upper(status)'), 'LUNAS')
             ->groupBy('date')
             ->orderBy('date', 'DESC')
             ->get(array(
                 DB::raw('Date(updated_at) as date'),
                 DB::raw('sum(tagihan) as "omset"')
             ));
-        return $this->success('Success!', $pendapatan);
+        
+        $totalPemasukan = Pembayaran::where(DB::raw('upper(status)'), 'LUNAS')
+            ->sum('tagihan');
+        return $this->success('Success!', ['omsetHarian' => $pendapatan, 'totalPemasukan' => $totalPemasukan]);
     }
 
     public function transaksi()
