@@ -129,7 +129,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 //riwayat
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/riwayat', [PesananController::class, 'riwayat']);
-    Route::get('/riwayatall', [PesananController::class, 'riwayatall']);
+    // Route::get('/riwayatall', [PesananController::class, 'riwayatall']);
 });
 
 
