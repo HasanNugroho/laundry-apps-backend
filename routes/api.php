@@ -71,14 +71,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/waktu/{id}', [WaktuController::class, 'showById']);
 });
 
-//owner
-Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
-    Route::get('/adwaktu', [WaktuController::class, 'showadmin']);
-    Route::post('/waktu', [WaktuController::class, 'create']);
-    Route::put('/waktu/{id}', [WaktuController::class, 'update']);
-    Route::delete('/waktu/{id}', [WaktuController::class, 'delete']);
-});
-
 //admin
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::get('/adwaktu', [WaktuController::class, 'showadmin']);
@@ -91,14 +83,6 @@ Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/service', [ServiceController::class, 'show']);
     Route::get('/service/{id}', [ServiceController::class, 'showById']);
-});
-
-//owner
-Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
-    Route::get('/adservice', [ServiceController::class, 'showadmin']);
-    Route::post('/service', [ServiceController::class, 'create']);
-    Route::put('/service/{id}', [ServiceController::class, 'update']);
-    Route::delete('/service/{id}', [ServiceController::class, 'delete']);
 });
 
 //admin
