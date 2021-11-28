@@ -17,17 +17,19 @@ class DashboardController extends Controller
     use ApiResponser;
     public function countpelanggan()
     {
+        $all = Pelanggan::count();
+        
         $currentmouth = Pelanggan::whereMonth('updated_at', date('m'))
         ->whereYear('updated_at', date('Y'))
         ->count();
         
         $dt     = Carbon::now();
         $past   = $dt->subMonth();
-        $lastmouth = Pelanggan::whereMonth('updated_at', $past->format('m'))
+        $lastmouth = Pelanggan::whereMonth('updated_at', '>', $past->format('m'))
         ->whereYear('updated_at', date('Y'))
         ->count();
 
-        return $this->success('Success!', ['curentMouth' => $currentmouth, 'lastMouth' => $lastmouth]);
+        return $this->success('Success!', ['curentMouth' => $currentmouth, 'lastMouth' => $lastmouth, 'total' => $all]);
     }
 
     public function nominalutang()
@@ -66,6 +68,6 @@ class DashboardController extends Controller
 
         $all = Pesanan::where(DB::raw('upper(status)'), 'SELESAI')->count();
 
-        return $this->success('Success!', ['today' => $today, 'yesterday' => $yesterday, 'current_week' => $current_week, 'thismouth' => $thismouth, 'lastmouth' => $lastmouth, 'all' => $all]);
+        return $this->success('Success!', ['today' => $today, 'yesterday' => $yesterday, 'current_week' => $current_week, 'thismouth' => $thismouth, 'lastmouth' => $lastmouth, 'total' => $all]);
     }
 }
