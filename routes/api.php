@@ -7,7 +7,7 @@ use App\Http\Controllers\API\AssetController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\Service\WaktuController;
 use App\Http\Controllers\API\Service\OutletController;
-// use App\Http\Controllers\API\Service\KiloanController;
+use App\Http\Controllers\API\DashboardController;
 // use App\Http\Controllers\API\Service\SatuanController;
 use App\Http\Controllers\API\Service\ServiceController;
 use App\Http\Controllers\API\Service\PesananController;
@@ -31,6 +31,14 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+//Dashboard
+Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
+    Route::get('/dashboard/pelanggan', [DashboardController::class, 'countpelanggan']);
+    Route::get('/dashboard/utang', [DashboardController::class, 'nominalutang']);
+    Route::get('/dashboard/omset', [DashboardController::class, 'pendapatan']);
+    Route::get('/dashboard/transaksi', [DashboardController::class, 'transaksi']);
 });
 
 //pelanggan
