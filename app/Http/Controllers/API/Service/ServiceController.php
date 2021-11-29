@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Service;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Traits\ApiResponser;
 use Illuminate\Support\Str;
 use App\Models\Service;
@@ -52,14 +53,16 @@ class ServiceController extends Controller
 
     public function show()
     {
-        $waktu = Service::where('status', 1)->where('idoutlet', Auth::user()['outlet_id'])->get();
-        return $this->success('Success!', $waktu);
+        $service = Service::where('status', 1)->where('idoutlet', Auth::user()['outlet_id'])->get();
+        return $this->success('Success!', $service);
     }
 
     public function showadmin()
     {
-        $waktu = Service::all();
-        return $this->success('Success!', $waktu);
+        $outletid = Auth::user()['outlet_id'];
+        // $service = Service::all();
+        $service = DB::select('select s.id, s.nama_layanan, s.harga, s.jenis, s.status, s.idwaktu, s.idoutlet, s.created_at, s.updated_at, w.nama as nama_waktu, w.waktu as estimasi from services s left join outlets o on s.idoutlet = o.id left join waktus w on s.idwaktu = w.id where o.id = ? or o.parent = ?', [$outletid, $outletid]);
+        return $this->success('Success!', $service);
     }
 
     public function showById($id)
@@ -76,7 +79,7 @@ class ServiceController extends Controller
     public function update($id, Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'nama_layanan' => 'string|max:255|unique:services',
+            'nama_layanan' => 'string|max:255',
             'harga' => 'integer',
             'status' => 'boolean',
             'kategori' => 'string',

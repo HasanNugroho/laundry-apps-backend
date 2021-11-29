@@ -18,7 +18,7 @@ class PelangganController extends Controller
         $validator = Validator::make($request->all(),[
             'nama' => 'required|string|max:255',
             'alamat' => 'required|string',
-            'whatsapp' => 'required|string'
+            'whatsapp' => 'required|string|unique:pelanggans'
         ]);
 
         if($validator->fails()){
@@ -73,7 +73,7 @@ class PelangganController extends Controller
         $validator = Validator::make($request->all(),[
             'nama' => 'string|max:255',
             'alamat' => 'string',
-            'whatsapp' => 'string'
+            'whatsapp' => 'string|unique:pelanggans'
         ]);
 
         if($validator->fails()){

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Service;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Traits\ApiResponser;
 use Illuminate\Support\Str;
 use App\Models\Waktu;
@@ -53,7 +54,10 @@ class WaktuController extends Controller
 
     public function showadmin()
     {
-        $waktu = Waktu::all();
+        $outletid = Auth::user()['outlet_id'];
+        // $waktu = Waktu::all();
+        $waktu = DB::select('select w.id, w.nama, w.waktu, w.jenis, w.status, w.paket, w.idoutlet, w.created_at, w.updated_at from waktus w left join outlets o on w.idoutlet = o.id where o.id = ? or parent = ?', [$outletid, $outletid]);
+
         return $this->success('Success!', $waktu);
     }
 
