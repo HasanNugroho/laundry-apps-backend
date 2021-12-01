@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Traits\ApiResponser;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
+use App\Models\Operasional;
 use App\Models\Pembayaran;
 use App\Models\Pesanan;
 use App\Models\Kiloan;
@@ -256,6 +257,27 @@ class PesananController extends Controller
 
     // }
 
+    // public function getPesananAdmin($outletid, $status)
+    // {
+    //     $outletid = Auth::user()['outlet_id'];
+    //     // $waktu = Waktu::all();
+    //     // $waktu = DB::select('select w.id, w.nama, w.waktu, w.jenis, w.status, w.paket, w.idoutlet, w.created_at, w.updated_at from waktus w left join outlets o on w.idoutlet = o.id where o.id = ? or parent = ?', [$outletid, $outletid]);
+    //     $pesanan = DB::table('pesanans')
+    //         ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+    //         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+    //         ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+    //         ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+    //         ->where('pesanans.outletid', $outletid)
+    //         ->where('pesanans.status', $status)
+    //         ->get();
+        
+    //     if($pesanan){
+    //         return $this->success('Success!', $pesanan);
+    //     }else{
+    //         return $this->error('Failed!', [ 'message' => 'Data Not Found'], 404);
+    //     }
+    // }
+
     public function getPesanan($outletid, $status)
     {
         $pesanan = DB::table('pesanans')
@@ -290,7 +312,7 @@ class PesananController extends Controller
         }
     }
 
-    public function updatestatus($id, Request $request)
+    public function updatestatuspesanan($id, Request $request)
     {
         $validator = Validator::make($request->all(),[
             'status' => 'required|string'
@@ -300,11 +322,60 @@ class PesananController extends Controller
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
         $update = Pesanan::where('id', $id)->update(['status' => $request->status]);
-        
         if($update){
-            // if(strtoupper($request->status) == 'SELESAI'){
+            $insert_pemasukan = DB::table('pesanans')
+            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+            ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+            ->select('pesanans.outletid', 'pesanans.jumlah', 'services.nama_layanan', 'services.item', 'pembayarans.tagihan')
+            ->where('pesanans.id', $id)
+            ->where(DB::raw('upper(pembayarans.status)'), 'LUNAS')
+            ->get();
+            print($insert_pemasukan);
+            $uuid = Str::uuid();
+            if(strtoupper($request->status) == 'SELESAI' && $insert_pemasukan){
+                Operasional::create([
+                    'id' => $uuid,
+                    'nominal' => $insert_pemasukan[0]->tagihan,
+                    'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
+                    'jenis' => 'PEMASUKAN',
+                    'outletid' => $insert_pemasukan[0]->outletid, 
+                ]);
 
-            // }
+            }
+            return $this->success('Success!');
+        }else{
+            return $this->error('Failed!', [ 'message' => 'Update Data Failed!'], 400);
+        }
+    }
+    
+    public function updatestatuspembayaran($id, Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            'status' => 'required|string'
+        ]);
+        
+        if($validator->fails()){
+            return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
+        }
+        $update = Pembayaran::where('idpesanan', $id)->update(['status' => $request->status]);
+        if($update){
+            $uuid = Str::uuid();
+            $insert_pemasukan = DB::table('pesanans')
+            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+            ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+            ->select('pesanans.outletid', 'pesanans.jumlah', 'services.nama_layanan', 'services.item', 'pembayarans.tagihan')
+            ->where('pesanans.id', $id)
+            ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+            ->get();
+            if(strtoupper($request->status) == 'LUNAS' && $insert_pemasukan){
+                Operasional::create([
+                    'id' => $uuid,
+                    'nominal' => $insert_pemasukan[0]->tagihan,
+                    'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
+                    'jenis' => 'PEMASUKAN',
+                    'outletid' => $insert_pemasukan[0]->outletid, 
+                ]);
+            }
             return $this->success('Success!');
         }else{
             return $this->error('Failed!', [ 'message' => 'Update Data Failed!'], 400);

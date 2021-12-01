@@ -20,7 +20,11 @@ class OutletController extends Controller
     public function show()
     {
         $user_outlet = Auth::user()->outlet_id;
-        $outlet = Outlet::where('id', $user_outlet)->orWhere('parent', $user_outlet)->get();
+        if($user_outlet){
+            $outlet = Outlet::where('id', $user_outlet)->orWhere('parent', $user_outlet)->get();
+        }{
+            $outlet = [];
+        }
         return $this->success(' Success!', $outlet);
     }
     

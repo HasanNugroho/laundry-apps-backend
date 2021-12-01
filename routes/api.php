@@ -50,12 +50,18 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete('/pelanggan/{id}', [PelangganController::class, 'delete']);
 });
 
+//pelanggan
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::post('/pengeluaran', [DashboardController::class, 'pengeluaran']);
+});
+
 // pesanan
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/pesanan', [PesananController::class, 'create']);
     Route::get('/pesanan/outlet/{outletid}/{status}', [PesananController::class, 'getPesanan']);
     Route::get('/pesanan/{nota}', [PesananController::class, 'getPesanandetail']);
-    Route::put('/pesanan/status/{id}', [PesananController::class, 'updatestatus']);
+    Route::put('/pesanan/status/{id}', [PesananController::class, 'updatestatuspesanan']);
+    Route::put('/pesanan/status/pembayaran/{id}', [PesananController::class, 'updatestatuspembayaran']);
 });
 
 //outlet
