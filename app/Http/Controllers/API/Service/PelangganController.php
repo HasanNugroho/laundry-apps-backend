@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\Pelanggan;
 use Validator;
@@ -55,6 +56,15 @@ class PelangganController extends Controller
             return $this->error('Failed!', [ 'message' => $data_pelanggan->errors()], 400);       
         }
 
+    }
+
+    public function showadmin()
+    {
+        $outletid = Auth::user()['outlet_id'];
+        // $waktu = Waktu::all();
+        $data_pelanggan = DB::select('select pe.nama, pe.whatsapp, pe.alamat from pelanggans pe left join outlets o on pe.outletid = o.id where o.id = ? or parent = ?', [$outletid, $outletid]);
+
+        return $this->success('Success!', $data_pelanggan);
     }
     
     public function showbyid($id)
