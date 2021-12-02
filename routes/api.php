@@ -43,6 +43,11 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
 });
 
 //pelanggan
+Route::group(['middleware' => ['auth:sanctum','owner']], function () {
+    Route::get('/adpelanggan', [PelangganController::class, 'showadmin']);
+});
+
+//pelanggan
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/pelanggan', [PelangganController::class, 'create']);
     Route::get('/pelanggan', [PelangganController::class, 'show']);
@@ -70,6 +75,8 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('/outlet', [OutletController::class, 'show']);
     Route::get('/outlet/{id}', [OutletController::class, 'showbyid']);
     Route::post('/outlet', [OutletController::class, 'create']);
+    Route::put('/outlet/{id}', [OutletController::class, 'update']);
+    Route::delete('/outlet/{id}', [OutletController::class, 'delete']);
     Route::post('/outlet/cabang', [OutletController::class, 'tambahCabang']);
     Route::post('/outlet/invite', [OutletController::class, 'invite']);
 });

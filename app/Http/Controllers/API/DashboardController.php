@@ -23,16 +23,38 @@ class DashboardController extends Controller
     use ApiResponser;
     public function countpelanggan()
     {
-        $all = Pelanggan::count();
+        $user_outlet = Auth::user()->outlet_id;
         
-        $currentmouth = Pelanggan::whereMonth('updated_at', date('m'))
-        ->whereYear('updated_at', date('Y'))
+        $currentmouth = DB::table('pelanggans')
+        ->leftJoin('outlets', 'pelanggans.outletid', '=', 'outlets.id')
+        ->whereMonth('pelanggans.created_at', date('m'))
+        ->whereYear('pelanggans.created_at', date('Y'))
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
         ->count();
+        
+        // $currentmouth = Pelanggan::whereMonth('created_at', date('m'))
+        // ->whereYear('created_at', date('Y'))
+        // ->count();
         
         $dt     = Carbon::now();
         $past   = $dt->subMonth();
-        $lastmouth = Pelanggan::whereMonth('updated_at', '>', $past->format('m'))
-        ->whereYear('updated_at', date('Y'))
+        $lastmouth = DB::table('pelanggans')
+        ->leftJoin('outlets', 'pelanggans.outletid', '=', 'outlets.id')
+        ->whereMonth('pelanggans.created_at', '<=' , $past->format('m'))
+        ->whereYear('pelanggans.created_at', date('Y'))
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->count();
+        
+        // $lastmouth = Pelanggan::whereMonth('created_at', '>', $past->format('m'))
+        // ->whereYear('created_at', date('Y'))
+        // ->count();
+        
+        $all = DB::table('pelanggans')
+        ->leftJoin('outlets', 'pelanggans.outletid', '=', 'outlets.id')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
         ->count();
 
         return $this->success('Success!', ['curentMouth' => $currentmouth, 'lastMouth' => $lastmouth, 'total' => $all]);
