@@ -98,43 +98,57 @@ class DashboardController extends Controller
 
     public function transaksi()
     {
-        // DB::enableQueryLog(); // Enable query log
-
-
         $user_outlet = Auth::user()->outlet_id;
+        $today = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereDate('pesanans.updated_at',Carbon::today())
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->count();
 
-        $today = Pesanan::where(DB::raw('upper(status)'), 'SELESAI')->whereDate('updated_at', Carbon::today())->count();
-        // $today = DB::table('pesanans')
-        // ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-        // ->where('outlets.id', $user_outlet)
-        // ->orWhere('outlets.parent', $user_outlet)
-        // ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
-        // ->whereDate('pesanans.updated_at',Carbon::today())
-        // ->count();
-
-        $yesterday = Pesanan::where(DB::raw('upper(status)'), 'SELESAI')->whereDate('updated_at', Carbon::yesterday())->count();
-        // $yesterday = DB::table('pesanans')
-        // ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-        // ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
-        // ->where('outlets.id', $user_outlet)
-        // ->orWhere('outlets.parent', $user_outlet)
-        // ->whereDate('pesanans.updated_at', Carbon::yesterday())
-        // ->count();
+        $yesterday = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereDate('pesanans.updated_at', Carbon::yesterday())
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->count();
         
-        $current_week = Pesanan::where(DB::raw('upper(status)'), 'SELESAI')->whereBetween('updated_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->count();
-
-        $thismouth = Pesanan::where(DB::raw('upper(status)'), 'SELESAI')->whereMonth('updated_at', Carbon::now()->format('m'))
-        ->whereYear('updated_at', date('Y'))
+        $current_week = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereBetween('pesanans.updated_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
         ->count();
 
-        $lastmouth = Pesanan::where(DB::raw('upper(status)'), 'SELESAI')->whereMonth('updated_at', Carbon::now()->subMonth()->format('m'))
-        ->whereYear('updated_at', date('Y'))
+        $thismouth = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereMonth('pesanans.updated_at', Carbon::now()->format('m'))
+        ->whereYear('pesanans.updated_at', date('Y'))
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
         ->count();
-        // dd(DB::getQueryLog()); // Show results of log
 
-        $all = Pesanan::where(DB::raw('upper(status)'), 'SELESAI')->count();
+        $lastmouth = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereMonth('pesanans.updated_at', Carbon::now()->subMonth()->format('m'))
+        ->whereYear('pesanans.updated_at', date('Y'))
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->count();
 
-        return $this->success('Success!', ['today' => $today, 'yesterday' => $yesterday, 'current_week' => $current_week, 'thismouth' => $thismouth, 'lastmouth' => $lastmouth, 'total' => $all, 'time' => Carbon::today()]);
+        $all = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->count();
+
+        return $this->success('Success!', ['today' => $today, 'yesterday' => $yesterday, 'current_week' => $current_week, 'thismouth' => $thismouth, 'lastmouth' => $lastmouth, 'total' => $all]);
     }
 
     public function pengeluaran(Request $request)
