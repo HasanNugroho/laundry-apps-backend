@@ -39,6 +39,7 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('/dashboard/utang', [DashboardController::class, 'nominalutang']);
     Route::get('/dashboard/omset', [DashboardController::class, 'pendapatan']);
     Route::get('/dashboard/transaksi', [DashboardController::class, 'transaksi']);
+    Route::get('/dashboard/jumlahtransaksi', [DashboardController::class, 'countTransaksi']);
 });
 
 //pelanggan

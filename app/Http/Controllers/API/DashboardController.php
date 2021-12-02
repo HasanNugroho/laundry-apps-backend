@@ -98,8 +98,28 @@ class DashboardController extends Controller
 
     public function transaksi()
     {
+        // DB::enableQueryLog(); // Enable query log
+
+
+        $user_outlet = Auth::user()->outlet_id;
+
         $today = Pesanan::where(DB::raw('upper(status)'), 'SELESAI')->whereDate('updated_at', Carbon::today())->count();
+        // $today = DB::table('pesanans')
+        // ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        // ->where('outlets.id', $user_outlet)
+        // ->orWhere('outlets.parent', $user_outlet)
+        // ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        // ->whereDate('pesanans.updated_at',Carbon::today())
+        // ->count();
+
         $yesterday = Pesanan::where(DB::raw('upper(status)'), 'SELESAI')->whereDate('updated_at', Carbon::yesterday())->count();
+        // $yesterday = DB::table('pesanans')
+        // ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        // ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        // ->where('outlets.id', $user_outlet)
+        // ->orWhere('outlets.parent', $user_outlet)
+        // ->whereDate('pesanans.updated_at', Carbon::yesterday())
+        // ->count();
         
         $current_week = Pesanan::where(DB::raw('upper(status)'), 'SELESAI')->whereBetween('updated_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->count();
 
@@ -110,10 +130,11 @@ class DashboardController extends Controller
         $lastmouth = Pesanan::where(DB::raw('upper(status)'), 'SELESAI')->whereMonth('updated_at', Carbon::now()->subMonth()->format('m'))
         ->whereYear('updated_at', date('Y'))
         ->count();
+        // dd(DB::getQueryLog()); // Show results of log
 
         $all = Pesanan::where(DB::raw('upper(status)'), 'SELESAI')->count();
 
-        return $this->success('Success!', ['today' => $today, 'yesterday' => $yesterday, 'current_week' => $current_week, 'thismouth' => $thismouth, 'lastmouth' => $lastmouth, 'total' => $all]);
+        return $this->success('Success!', ['today' => $today, 'yesterday' => $yesterday, 'current_week' => $current_week, 'thismouth' => $thismouth, 'lastmouth' => $lastmouth, 'total' => $all, 'time' => Carbon::today()]);
     }
 
     public function pengeluaran(Request $request)
@@ -143,4 +164,26 @@ class DashboardController extends Controller
             return $this->error('Failed!', [ 'message' => 'created data failed!'], 400);
         }
     }
+
+    public function countTransaksi()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        $transaksi = DB::select('SELECT 
+        COUNT(IF(upper(ps.status) = "DIBATALKAN", 1, NULL)) "dibatalkan",
+        COUNT(IF(upper(ps.status) = "SELESAI", 1, NULL)) "selesai",
+        COUNT(IF(upper(ps.status) = "PACKING", 1, NULL)) "packing",
+        COUNT(IF(upper(ps.status) = "PROSES", 1, NULL)) "proses",
+        COUNT(IF(upper(ps.status) = "ANTERIAN", 1, NULL)) "antrian"
+        FROM
+            pesanans ps
+        LEFT JOIN
+            outlets o 
+        ON 
+            ps.outletid = o.id
+        WHERE 
+            o.parent = ? or o.id = ?', [$user_outlet, $user_outlet]);
+
+        return $this->success('Success!', $transaksi);
+    }
+
 }
