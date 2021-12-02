@@ -110,12 +110,23 @@ class PesananController extends Controller
         ];
 
         try {
-            Pesanan::create($insert);
-            Pembayaran::create($insertPembayaran);
-            return $this->success('Success!', [$nota, $insert, $insertPembayaran]);
+            if(Pesanan::create($insert) && Pembayaran::create($insertPembayaran)){
+                $pesanan = DB::table('pesanans')
+                ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+                ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+                ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+                ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                ->where('pesanans.id', $uuid)
+                ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
+                ->get();
+                
+                return $this->success('Success!', [$nota, $pesanan]);
+            }else{
+                return $this->error('Failed!', 'data not insert!', 400);       
+            }
         } catch (Throwable $th) {
             report($th);
-
             return $this->error('Failed!', [ 'message' => $th], 400);       
         }
 
