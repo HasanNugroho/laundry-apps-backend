@@ -35,11 +35,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 //Dashboard
 Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
-    Route::get('/dashboard/pelanggan', [DashboardController::class, 'countpelanggan']);
-    Route::get('/dashboard/utang', [DashboardController::class, 'nominalutang']);
-    Route::get('/dashboard/omset', [DashboardController::class, 'pendapatan']);
-    Route::get('/dashboard/transaksi', [DashboardController::class, 'transaksi']);
-    Route::get('/dashboard/jumlahtransaksi', [DashboardController::class, 'countTransaksi']);
+    Route::get('/dashboard/pelanggan', [DashboardController::class, 'countpelangganOwner']);
+    Route::get('/dashboard/utang', [DashboardController::class, 'nominalutangOwner']);
+    Route::get('/dashboard/omset', [DashboardController::class, 'pendapatanOwner']);
+    Route::get('/dashboard/transaksi', [DashboardController::class, 'transaksiOwner']);
+    Route::get('/dashboard/jumlahtransaksi', [DashboardController::class, 'countTransaksiOwner']);
+    Route::get('/dashboard/karyawan', [DashboardController::class, 'daftarKasirOwner']);
+    Route::get('/adriwayat', [PesananController::class, 'riwayatAdmin']);
+    Route::get('/dashboard/adsearch', [DashboardController::class, 'searchAdmin']);
 });
 
 //pelanggan
@@ -134,8 +137,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 //riwayat
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::get('/riwayat', [PesananController::class, 'riwayat']);
-    // Route::get('/riwayatall', [PesananController::class, 'riwayatall']);
+    Route::get('/riwayat', [PesananController::class, 'riwayatAdmin']);
 });
 
 
