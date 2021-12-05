@@ -132,163 +132,6 @@ class PesananController extends Controller
 
     }
 
-    // public function create(Request $request)
-    // {
-    //     if($request->note){
-    //         $validate = [
-    //             'note' => 'required|string',
-    //         ];
-    //     }
-    //     if($request->metode_pembayaran){
-    //         $validate = [
-    //             'metode_pembayaran' => 'required|string',
-    //         ];
-    //     }
-    //     if($request->diskon){
-    //         $validate = [
-    //             'diskon' => 'required|string',
-    //         ];
-    //     }
-    //     if($request->diskon){
-    //         $validate = [
-    //             'utang' => 'required|string',
-    //         ];
-    //     }
-       
-    //     $validate = [
-    //         'idwaktu' => 'required|string',
-    //         'jumlah' => 'required|integer',
-    //         'idlayanan' => 'required|string',
-    //         'status_pembayaran' => 'required|string',
-    //         'tagihan' => 'required|integer',
-    //         'subtotal' => 'required|integer',
-    //         'bayar' => 'required|integer',
-    //         'jenis_layanan' => 'required|string',
-    //         'idpelanggan' => 'required|string'
-    //     ];
-    //     $validator = Validator::make($request->all(),$validate);
-
-    //     if($validator->fails()){
-    //         return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
-    //     }
-
-    //     $insert = [];
-    //     // dd($request);
-    //     if($request->jenis_layanan == 'kiloan'){
-    //         try {
-    //             $kiloan = DB::table('kiloans')
-    //             ->where('id', $request->idlayanan)
-    //             ->where('idwaktu', $request->idwaktu)
-    //             ->where('idoutlet', Auth::user()['outlet_id'])
-    //             ->first();
-        
-
-    //             $inputLayanan = $kiloan->nama_layanan;
-    //             $inputitem = $kiloan->item;
-    //             $inputjenisLayanan = $kiloan->jenis;
-                
-    //             $inputHarga = $kiloan->harga;
-
-    //         } catch (Throwable $th) {
-    //             report($th);
-    //             return $this->error('Failed!', [ 'message' => "data not found!, check again"], 400);       
-    //         }
-    //     }
-        
-    //     if($request->jenis_layanan == 'satuan'){
-    //         try {
-    //             $satuan = DB::table('satuans')
-    //                 ->where('idwaktu', $request->idwaktu)
-    //                 ->where('id', $request->idlayanan)
-    //                 ->where('idoutlet', Auth::user()['outlet_id'])
-    //                 ->first();
-
-    //             $input = Arr::add($insert, 'kategori' ,$satuan->kategori);
-
-    //             $inputLayanan = $satuan->nama_layanan;
-    //             $inputitem = $satuan->item;
-    //             $inputjenisLayanan = $satuan->jenis;
-                
-    //             $inputHarga = $satuan->harga;
-    //         } catch (Throwable $th) {
-    //             report($th);
-
-    //             return $this->error('Failed!', [ 'message' => "data not found!, check again"], 400);       
-    //         }
-    //     }
-
-    //     // get data waktu
-    //     $waktu = DB::table('waktus')
-    //         ->where('id', $request->idwaktu)
-    //         ->where('idoutlet', Auth::user()['outlet_id'])
-    //         ->first();
-
-    //     $deadline = Carbon::now()->addHours($waktu->waktu); 
-
-    //     $nota = IdGenerator::generate(['table' => 'pesanans', 'length' => 20, 'prefix' => $waktu->paket . "" . date('Ymd')]);
-    //     $uuid = Str::uuid();
-    //     $insert = [
-    //         'id' => $uuid,
-    //         'idpelanggan' => $request->idpelanggan,
-    //         'note' => $request->note,
-    //         'deadline' => $deadline,
-    //         'nota_transaksi' => $nota,
-    //         'jumlah' => $request->jumlah,
-    //         'paket' => $waktu->paket,
-    //         'status' => 'antrian',
-    //         'outletid' => Auth::user()['outlet_id'],
-    //         'kasir' => Auth::user()['username'],
-    //     ];
-    //     $insertPembayaran = [
-    //         'idpesanan' => $uuid,
-    //         'subtotal' => $request->subtotal,
-    //         'tagihan' => $request->tagihan,
-    //         'utang' => $request->utang,
-    //         'diskon' => $request->diskon,
-    //         'bayar' => $request->bayar,
-    //         'status' => $request->status_pembayaran ? $request->status_pembayaran : 'Belum Bayar',
-    //         'metode_pembayaran' => $request->metode_pembayaran ? $request->metode_pembayaran : 'Cash',
-    //     ];
-
-    //     $insert = Arr::add($insert, 'layanan' ,$inputLayanan);
-    //     $insert = Arr::add($insert, 'item' ,$inputitem);
-    //     $insert = Arr::add($insert, 'jenis_layanan' ,$inputjenisLayanan);
-        
-    //     $insertPembayaran = Arr::add($insertPembayaran, 'harga' ,$inputHarga);
-        
-    //     try {
-    //         Pesanan::create($insert);
-    //         Pembayaran::create($insertPembayaran);
-    //         return $this->success('Success!', [$nota, $insert, $insertPembayaran]);
-    //     } catch (Throwable $th) {
-    //         report($th);
-
-    //         return $this->error('Failed!', [ 'message' => $th], 400);       
-    //     }
-
-    // }
-
-    // public function getPesananAdmin($outletid, $status)
-    // {
-    //     $outletid = Auth::user()['outlet_id'];
-    //     // $waktu = Waktu::all();
-    //     // $waktu = DB::select('select w.id, w.nama, w.waktu, w.jenis, w.status, w.paket, w.idoutlet, w.created_at, w.updated_at from waktus w left join outlets o on w.idoutlet = o.id where o.id = ? or parent = ?', [$outletid, $outletid]);
-    //     $pesanan = DB::table('pesanans')
-    //         ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
-    //         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-    //         ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
-    //         ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-    //         ->where('pesanans.outletid', $outletid)
-    //         ->where('pesanans.status', $status)
-    //         ->get();
-        
-    //     if($pesanan){
-    //         return $this->success('Success!', $pesanan);
-    //     }else{
-    //         return $this->error('Failed!', [ 'message' => 'Data Not Found'], 404);
-    //     }
-    // }
-
     public function getPesanan($outletid, $status)
     {
         // DB::enableQueryLog(); // Enable query log
@@ -374,7 +217,7 @@ class PesananController extends Controller
         if($validator->fails()){
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
-        $update = Pembayaran::where('idpesanan', $id)->update(['status' => $request->status]);
+        $update = Pembayaran::where('idpesanan', $id)->update(['status' => $request->status, 'utang' => 0]);
         if($update){
             $uuid = Str::uuid();
             $insert_pemasukan = DB::table('pesanans')
@@ -415,7 +258,7 @@ class PesananController extends Controller
             ->whereDate('pesanans.updated_at', Carbon::today())
             ->where('pesanans.outletid', Auth::user()['outlet_id'])
             ->where('pesanans.status', 'SELESAI')
-            ->select('pelanggans.nama', 'pesanans.nota_transaksi', 'pembayarans.status', 'waktus.paket', 'services.nama_layanan')
+            ->select('pelanggans.nama', 'pesanans.nota_transaksi', 'pembayarans.status', 'waktus.paket', 'services.nama_layanan', 'outlets.nama_outlet', 'outlets.status_outlet')
             ->get();
         if($pesanan){
             return $this->success('Success!', $pesanan);
@@ -424,27 +267,29 @@ class PesananController extends Controller
         }
     }
 
-    // public function riwayatall(Request $request)
-    // {
-    //     // $pesanan = Pesanan::select()->whereDate('created_at', Carbon::today())
-    //     // ->where('outletid', Auth::user()['outlet_id'])
-    //     // ->where('status', 'SELESAI')
-    //     // ->get();
+    public function riwayatAdmin(Request $request)
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        // $pesanan = Pesanan::select()->whereDate('created_at', Carbon::today())
+        // ->where('outletid', Auth::user()['outlet_id'])
+        // ->where('status', 'SELESAI')
+        // ->get();
 
-    //     $pesanan = DB::table('pesanans')
-    //         ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
-    //         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-    //         ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
-    //         ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
-    //         ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-    //         ->where('pesanans.outletid', Auth::user()['outlet_id'])
-    //         ->where('pesanans.status', 'SELESAI')
-    //         ->select('pelanggans.nama', 'pesanans.nota_transaksi', 'pembayarans.status', 'waktus.paket', 'services.nama_layanan')
-    //         ->get();
-    //     if($pesanan){
-    //         return $this->success('Success!', $pesanan);
-    //     }else{
-    //         return $this->error('Failed!', [ 'message' => 'Data Not Available!'], 400);
-    //     }
-    // }
+        $pesanan = DB::table('pesanans')
+            ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+            ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+            ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+            ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+            ->where('pesanans.status', 'SELESAI')
+            ->where('outlets.id', $user_outlet)
+            ->orWhere('outlets.parent', $user_outlet)
+            ->select('pelanggans.nama', 'pesanans.nota_transaksi', 'pembayarans.status', 'waktus.paket', 'services.nama_layanan', 'outlets.nama_outlet', 'outlets.status_outlet')
+            ->get();
+        if($pesanan){
+            return $this->success('Success!', $pesanan);
+        }else{
+            return $this->error('Failed!', [ 'message' => 'Data Not Available!'], 400);
+        }
+    }
 }
