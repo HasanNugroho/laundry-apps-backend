@@ -38,11 +38,21 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('/dashboard/pelanggan', [DashboardController::class, 'countpelangganOwner']);
     Route::get('/dashboard/utang', [DashboardController::class, 'nominalutangOwner']);
     Route::get('/dashboard/omset', [DashboardController::class, 'pendapatanOwner']);
+    Route::get('/dashboard/pengeluaran', [DashboardController::class, 'pengeluaranOwner']);
     Route::get('/dashboard/transaksi', [DashboardController::class, 'transaksiOwner']);
     Route::get('/dashboard/jumlahtransaksi', [DashboardController::class, 'countTransaksiOwner']);
     Route::get('/dashboard/karyawan', [DashboardController::class, 'daftarKasirOwner']);
     Route::get('/adriwayat', [PesananController::class, 'riwayatAdmin']);
     Route::get('/dashboard/adsearch', [DashboardController::class, 'searchAdmin']);
+    Route::get('/dashboard/counttransaksi', [DashboardController::class, 'countTransaksiAdmin']);
+});
+
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('/dashboard/krutang', [DashboardController::class, 'nominalutangKasir']);
+    Route::get('/dashboard/kromset', [DashboardController::class, 'pendapatanKasir']);
+    Route::get('/dashboard/krtransaksi', [DashboardController::class, 'transaksiKasir']);
+    Route::get('/dashboard/krcounttransaksi', [DashboardController::class, 'countTransaksiKasir']);
+    Route::get('/dashboard/krpengeluaran', [DashboardController::class, 'pengeluaranKasir']);
 });
 
 //pelanggan

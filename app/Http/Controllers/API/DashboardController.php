@@ -72,6 +72,18 @@ class DashboardController extends Controller
 
         return $this->success('Success!', $utang);
     }
+    
+    public function nominalutangKasir()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        $utang = DB::table('pembayarans')->where(DB::raw('upper(pembayarans.status)'), 'UTANG')
+        ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where('outlets.id', $user_outlet)
+        ->sum('utang');
+
+        return $this->success('Success!', $utang);
+    }
 
     public function pendapatanOwner()
     {
@@ -91,20 +103,6 @@ class DashboardController extends Controller
                 // DB::raw('operasionals.outletid as outletid')
             ));
 
-        $pengeluaran = DB::table('operasionals')
-            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-            ->where('operasionals.created_at', '>=', Carbon::now()->subMonth())
-            ->where('operasionals.jenis', 'PENGELUARAN')
-            ->where('outlets.id', $user_outlet)
-            ->orWhere('outlets.parent', $user_outlet)
-            ->groupBy('date', 'outletid')
-            ->orderBy('date', 'DESC')
-            ->get(array(
-                DB::raw('Date(operasionals.created_at) as date'),
-                DB::raw('sum(operasionals.nominal) as "omset"'),
-                // DB::raw('operasionals.outletid as outletid'),
-            ));
-        
         $totalpendapatan = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
             ->where('operasionals.jenis', 'PEMASUKAN')
@@ -121,7 +119,97 @@ class DashboardController extends Controller
 
         $totalpemasukan = $totalpendapatan[0]->pendapatan - $totalpengeluaran[0]->pengeluaran;
 
-        return $this->success('Success!', ['omsetHarian' => $pendapatan, 'pengeluaranHarian' => $pengeluaran, 'totalPemasukan' => $totalpemasukan]);
+        return $this->success('Success!', ['omsetHarian' => $pendapatan, 'totalPemasukan' => $totalpemasukan]);
+    }
+    
+    public function pendapatanKasir()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+
+        $pendapatan = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.created_at', '>=', Carbon::now()->subMonth())
+            ->where('operasionals.jenis', 'PEMASUKAN')
+            ->where('outlets.id', $user_outlet)
+            ->groupBy('date', 'outletid')
+            ->orderBy('date', 'DESC')
+            ->get(array(
+                DB::raw('Date(operasionals.created_at) as date'),
+                DB::raw('sum(operasionals.nominal) as "omset"'),
+                // DB::raw('operasionals.outletid as outletid')
+            ));
+
+        $totalpendapatan = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.jenis', 'PEMASUKAN')
+            ->where('outlets.id', $user_outlet)
+            ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
+        
+        $totalpengeluaran = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.jenis', 'PENGELUARAN')
+            ->where('outlets.id', $user_outlet)
+            ->get(DB::raw('sum(operasionals.nominal) as "pengeluaran"'));
+
+        $totalpemasukan = $totalpendapatan[0]->pendapatan - $totalpengeluaran[0]->pengeluaran;
+
+        return $this->success('Success!', ['omsetHarian' => $pendapatan, 'totalPemasukan' => $totalpemasukan]);
+    }
+
+    public function pengeluaranOwner()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+
+        $pengeluaran = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.created_at', '>=', Carbon::now()->subMonth())
+            ->where('operasionals.jenis', 'PENGELUARAN')
+            ->where('outlets.id', $user_outlet)
+            ->orWhere('outlets.parent', $user_outlet)
+            ->groupBy('date', 'outletid')
+            ->orderBy('date', 'DESC')
+            ->get(array(
+                DB::raw('Date(operasionals.created_at) as date'),
+                DB::raw('sum(operasionals.nominal) as "omset"'),
+                // DB::raw('operasionals.outletid as outletid'),
+            ));
+        
+        $totalpengeluaran = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.jenis', 'PENGELUARAN')
+            ->where('outlets.id', $user_outlet)
+            ->orWhere('outlets.parent', $user_outlet)
+            ->get(DB::raw('sum(operasionals.nominal) as "pengeluaran"'));
+
+
+        return $this->success('Success!', ['pengeluaranHarian' => $pengeluaran, 'totalPengeluaran' => $totalpengeluaran[0]->pengeluaran]);
+    }
+
+    public function pengeluaranKasir()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+
+        $pengeluaran = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.created_at', '>=', Carbon::now()->subMonth())
+            ->where('operasionals.jenis', 'PENGELUARAN')
+            ->where('outlets.id', $user_outlet)
+            ->groupBy('date', 'outletid')
+            ->orderBy('date', 'DESC')
+            ->get(array(
+                DB::raw('Date(operasionals.created_at) as date'),
+                DB::raw('sum(operasionals.nominal) as "omset"'),
+                // DB::raw('operasionals.outletid as outletid'),
+            ));
+        
+        $totalpengeluaran = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.jenis', 'PENGELUARAN')
+            ->where('outlets.id', $user_outlet)
+            ->get(DB::raw('sum(operasionals.nominal) as "pengeluaran"'));
+
+
+        return $this->success('Success!', ['pengeluaranHarian' => $pengeluaran, 'totalPengeluaran' => $totalpengeluaran[0]->pengeluaran]);
     }
 
     public function transaksiOwner()
@@ -177,6 +265,130 @@ class DashboardController extends Controller
         ->count();
 
         return $this->success('Success!', ['today' => $today, 'yesterday' => $yesterday, 'current_week' => $current_week, 'thismouth' => $thismouth, 'lastmouth' => $lastmouth, 'total' => $all]);
+    }
+    
+    public function transaksiKasir()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        $today = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereDate('pesanans.updated_at',Carbon::today())
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->count();
+
+        $yesterday = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereDate('pesanans.updated_at', Carbon::yesterday())
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->count();
+        
+        $current_week = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereBetween('pesanans.updated_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->count();
+
+        $thismouth = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereMonth('pesanans.updated_at', Carbon::now()->format('m'))
+        ->whereYear('pesanans.updated_at', date('Y'))
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->count();
+
+        $lastmouth = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereMonth('pesanans.updated_at', Carbon::now()->subMonth()->format('m'))
+        ->whereYear('pesanans.updated_at', date('Y'))
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->count();
+
+        $all = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->count();
+
+        return $this->success('Success!', ['today' => $today, 'yesterday' => $yesterday, 'current_week' => $current_week, 'thismouth' => $thismouth, 'lastmouth' => $lastmouth, 'total' => $all]);
+    }
+
+    public function countTransaksiAdmin()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        $selesai = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->count();
+
+        $proses = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where(DB::raw('upper(pesanans.status)'), 'PROSES')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->count();
+        
+        $antrian = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where(DB::raw('upper(pesanans.status)'), 'ANTRIAN')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->count();
+
+        $dibatalkan = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where(DB::raw('upper(pesanans.status)'), 'DIBATALKAN')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->count();
+
+        $all = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->count();
+
+        return $this->success('Success!', ['selesai' => $selesai, 'proses' => $proses, 'antrian' => $antrian, 'dibatalkan' => $dibatalkan, 'total' => $all]);
+    }
+    
+    public function countTransaksiKasir()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        $selesai = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        ->where('outlets.id', $user_outlet)
+        ->count();
+
+        $proses = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where(DB::raw('upper(pesanans.status)'), 'PROSES')
+        ->where('outlets.id', $user_outlet)
+        ->count();
+        
+        $antrian = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where(DB::raw('upper(pesanans.status)'), 'ANTRIAN')
+        ->where('outlets.id', $user_outlet)
+        ->count();
+
+        $dibatalkan = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where(DB::raw('upper(pesanans.status)'), 'DIBATALKAN')
+        ->where('outlets.id', $user_outlet)
+        ->count();
+
+        $all = DB::table('pesanans')
+        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->where('outlets.id', $user_outlet)
+        ->count();
+
+        return $this->success('Success!', ['selesai' => $selesai, 'proses' => $proses, 'antrian' => $antrian, 'dibatalkan' => $dibatalkan, 'total' => $all]);
     }
 
     public function pengeluaran(Request $request)
