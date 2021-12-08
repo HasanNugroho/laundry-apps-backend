@@ -105,7 +105,7 @@ class PesananController extends Controller
             'utang' => $request->utang,
             'diskon' => $request->diskon,
             'bayar' => $request->bayar,
-            'status' => $request->status_pembayaran ? $request->status_pembayaran : 'Belum Bayar',
+            'status' => $request->status_pembayaran ? Str::upper($request->status_pembayaran) : 'BELUM BAYAR',
             'metode_pembayaran' => $request->metode_pembayaran ? $request->metode_pembayaran : 'Cash',
         ];
 
@@ -217,7 +217,9 @@ class PesananController extends Controller
         if($validator->fails()){
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
-        $update = Pembayaran::where('idpesanan', $id)->update(['status' => $request->status, 'utang' => 0]);
+        $updatePembayaran = ['status' => $request->status, 'utang' => 0];
+        // dd($updatePembayaran);
+        $update = Pembayaran::where('idpesanan', $id)->update($updatePembayaran);
         if($update){
             $uuid = Str::uuid();
             $insert_pemasukan = DB::table('pesanans')
@@ -225,15 +227,15 @@ class PesananController extends Controller
             ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
             ->select('pesanans.outletid', 'pesanans.jumlah', 'services.nama_layanan', 'services.item', 'pembayarans.tagihan')
             ->where('pesanans.id', $id)
-            ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+            ->where(DB::raw('upper(pembayarans.status)'), 'LUNAS')
             ->get();
-            if(strtoupper($request->status) == 'LUNAS' && $insert_pemasukan){
+            if(strtoupper($request->status) == 'LUNAS' && !isset($insert_pemasukan)){
                 Operasional::create([
                     'id' => $uuid,
-                    'nominal' => $insert_pemasukan[0]->tagihan,
-                    'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
+                    'nominal' => $insert_pemasukan->tagihan,
+                    'keterangan' => $insert_pemasukan->nama_layanan . '-' . $insert_pemasukan->jumlah . '-' . $insert_pemasukan->item,
                     'jenis' => 'PEMASUKAN',
-                    'outletid' => $insert_pemasukan[0]->outletid, 
+                    'outletid' => $insert_pemasukan->outletid, 
                 ]);
             }
             return $this->success('Success!');
