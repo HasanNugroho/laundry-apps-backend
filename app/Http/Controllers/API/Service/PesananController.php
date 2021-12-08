@@ -232,10 +232,10 @@ class PesananController extends Controller
             if(strtoupper($request->status) == 'LUNAS' && !isset($insert_pemasukan)){
                 Operasional::create([
                     'id' => $uuid,
-                    'nominal' => $insert_pemasukan->tagihan,
-                    'keterangan' => $insert_pemasukan->nama_layanan . '-' . $insert_pemasukan->jumlah . '-' . $insert_pemasukan->item,
+                    'nominal' => $insert_pemasukan[0]->tagihan,
+                    'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
                     'jenis' => 'PEMASUKAN',
-                    'outletid' => $insert_pemasukan->outletid, 
+                    'outletid' => $insert_pemasukan[0]->outletid, 
                 ]);
             }
             return $this->success('Success!');
