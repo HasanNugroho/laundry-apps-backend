@@ -186,22 +186,24 @@ class PesananController extends Controller
             $insert_pemasukan = DB::table('pesanans')
             ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
             ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-            ->select('pesanans.outletid', 'pesanans.jumlah', 'pesanans.kasir', 'services.nama_layanan', 'services.item', 'pembayarans.tagihan')
+            ->select('pesanans.outletid', 'pesanans.jumlah', 'pesanans.kasir', 'services.nama_layanan', 'services.item', 'pembayarans.tagihan', 'pesanans.status as statusPesanan')
             ->where('pesanans.id', $id)
             ->where(DB::raw('upper(pembayarans.status)'), 'LUNAS')
             ->get();
             print($insert_pemasukan);
             $uuid = Str::uuid();
-            if(Str::upper($request->status) == 'SELESAI' && $insert_pemasukan){
-                Operasional::create([
-                    'id' => $uuid,
-                    'nominal' => $insert_pemasukan[0]->tagihan,
-                    'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
-                    'jenis' => 'PEMASUKAN',
-                    'kasir' => $insert_pemasukan[0]->kasir, 
-                    'outletid' => $insert_pemasukan[0]->outletid, 
-                ]);
-
+            if(Str::upper($insert_pemasukan[0]->statusPesanan) != 'SELESAI'){
+                if(Str::upper($request->status) == 'SELESAI' && $insert_pemasukan){
+                    Operasional::create([
+                        'id' => $uuid,
+                        'nominal' => $insert_pemasukan[0]->tagihan,
+                        'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
+                        'jenis' => 'PEMASUKAN',
+                        'kasir' => $insert_pemasukan[0]->kasir, 
+                        'outletid' => $insert_pemasukan[0]->outletid, 
+                    ]);
+    
+                }
             }
             return $this->success('Success!');
         }else{
@@ -226,19 +228,21 @@ class PesananController extends Controller
             $insert_pemasukan = DB::table('pesanans')
             ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
             ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-            ->select('pesanans.outletid', 'pesanans.jumlah', 'pesanans.kasir', 'services.nama_layanan', 'services.item', 'pembayarans.tagihan')
+            ->select('pesanans.outletid', 'pesanans.jumlah', 'pesanans.kasir', 'services.nama_layanan', 'services.item', 'pembayarans.tagihan', 'pembayarans.status as statusPembayaran')
             ->where('pesanans.id', $id)
             ->where(DB::raw('upper(pembayarans.status)'), 'LUNAS')
             ->get();
-            if(Str::upper($request->status) == 'LUNAS' && !isset($insert_pemasukan)){
-                Operasional::create([
-                    'id' => $uuid,
-                    'nominal' => $insert_pemasukan[0]->tagihan,
-                    'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
-                    'jenis' => 'PEMASUKAN',
-                    'kasir' => $insert_pemasukan[0]->kasir, 
-                    'outletid' => $insert_pemasukan[0]->outletid, 
-                ]);
+            if(Str::upper($insert_pemasukan[0]->statusPembayaran) != 'LUNAS'){
+                if(Str::upper($request->status) == 'LUNAS' && !isset($insert_pemasukan)){
+                    Operasional::create([
+                        'id' => $uuid,
+                        'nominal' => $insert_pemasukan[0]->tagihan,
+                        'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
+                        'jenis' => 'PEMASUKAN',
+                        'kasir' => $insert_pemasukan[0]->kasir, 
+                        'outletid' => $insert_pemasukan[0]->outletid, 
+                    ]);
+                }
             }
             return $this->success('Success!');
         }else{
