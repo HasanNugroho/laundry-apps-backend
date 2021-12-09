@@ -62,7 +62,7 @@ class PelangganController extends Controller
     {
         $outletid = Auth::user()['outlet_id'];
         // $waktu = Waktu::all();
-        $data_pelanggan = DB::select('select pe.id, pe.nama, pe.whatsapp, pe.alamat, pe.created_at from pelanggans pe left join outlets o on pe.outletid = o.id where o.id = ? or parent = ?', [$outletid, $outletid]);
+        $data_pelanggan = DB::select('select pe.id, pe.nama, pe.whatsapp, pe.alamat, pe.created_at as date_join from pelanggans pe left join outlets o on pe.outletid = o.id where o.id = ? or parent = ?', [$outletid, $outletid]);
 
         return $this->success('Success!', $data_pelanggan);
     }
