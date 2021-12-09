@@ -192,7 +192,7 @@ class PesananController extends Controller
             ->get();
             print($insert_pemasukan);
             $uuid = Str::uuid();
-            if(strtoupper($request->status) == 'SELESAI' && $insert_pemasukan){
+            if(Str::upper($request->status) == 'SELESAI' && $insert_pemasukan){
                 Operasional::create([
                     'id' => $uuid,
                     'nominal' => $insert_pemasukan[0]->tagihan,
@@ -229,7 +229,7 @@ class PesananController extends Controller
             ->where('pesanans.id', $id)
             ->where(DB::raw('upper(pembayarans.status)'), 'LUNAS')
             ->get();
-            if(strtoupper($request->status) == 'LUNAS' && !isset($insert_pemasukan)){
+            if(Str::upper($request->status) == 'LUNAS' && !isset($insert_pemasukan)){
                 Operasional::create([
                     'id' => $uuid,
                     'nominal' => $insert_pemasukan[0]->tagihan,
@@ -293,5 +293,16 @@ class PesananController extends Controller
         }else{
             return $this->error('Failed!', [ 'message' => 'Data Not Available!'], 400);
         }
+    }
+
+    public function operasional()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        $operasional = DB::table('operasionals')
+        ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        ->where('outlets.id', $user_outlet)
+        ->select('operasionals.*')
+        ->get();
+        return $this->success('Success!', $operasional);
     }
 }

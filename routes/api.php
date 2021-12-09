@@ -44,6 +44,7 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('/dashboard/karyawan', [DashboardController::class, 'daftarKasirOwner']);
     Route::get('/adriwayat', [PesananController::class, 'riwayatAdmin']);
     Route::get('/dashboard/adsearch', [DashboardController::class, 'searchAdmin']);
+    Route::get('/dashboard/operasional', [DashboardController::class, 'operasionalOwner']);
     Route::get('/dashboard/counttransaksi', [DashboardController::class, 'countTransaksiAdmin']);
     Route::get('/dashboard/pesanan', [DashboardController::class, 'getPesananAdmin']);
 });
@@ -70,9 +71,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete('/pelanggan/{id}', [PelangganController::class, 'delete']);
 });
 
-//pelanggan
+//operasional
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/pengeluaran', [DashboardController::class, 'pengeluaran']);
+    // Route::post('/pemasukan', [DashboardController::class, 'pemasukan']);
+    Route::get('/operasional', [PesananController::class, 'operasional']);
 });
 
 // pesanan
@@ -149,7 +152,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/riwayat', [PesananController::class, 'riwayatAdmin']);
 });
-
 
 Route::fallback(function () {
     return Response::json("FORBIDDEN", 403);

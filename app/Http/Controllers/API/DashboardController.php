@@ -456,14 +456,13 @@ class DashboardController extends Controller
     public function operasionalOwner()
     {
         $user_outlet = Auth::user()->outlet_id;
-        // $users = DB::table('users')
-        // ->leftJoin('outlets', 'users.outlet_id', '=', 'outlets.id')
-        // ->where('outlets.id', $user_outlet)
-        // ->orWhere('outlets.parent', $user_outlet)
-        // ->select('users.uid','users.username', 'users.email', 'users.role', 'users.alamat', 'users.whatsapp', 'users.status', 'users.created_at as date_join', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.alamat')
-        // ->get();
-
-        return $this->success('Success!', $users);
+        $operasional = DB::table('operasionals')
+        ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->select('operasionals.*')
+        ->get();
+        return $this->success('Success!', $operasional);
     }
 
     public function searchAdmin(Request $request)
@@ -555,20 +554,34 @@ class DashboardController extends Controller
         return $this->success('Success!', [$search]);
     }
 
-    public function getPesananAdmin()
+    public function getPesananAdmin(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
+        if($request->status){
+            $pesanan = DB::table('pesanans')
+                ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+                ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+                ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+                ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                ->where(DB::raw('upper(pesanans.status)'), Str::upper($request->status))
+                ->where('outlets.id', $user_outlet)
+                ->orWhere('outlets.parent', $user_outlet)
+                ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
+                ->get();
+        }else{
+            $pesanan = DB::table('pesanans')
+                ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+                ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+                ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+                ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                ->where('outlets.id', $user_outlet)
+                ->orWhere('outlets.parent', $user_outlet)
+                ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
+                ->get();
 
-        $pesanan = DB::table('pesanans')
-            ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
-            ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
-            ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
-            ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-            ->where('outlets.id', $user_outlet)
-            ->orWhere('outlets.parent', $user_outlet)
-            ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
-            ->get();
+        }
         // dd(DB::getQueryLog()); // Show results of log
 
         
