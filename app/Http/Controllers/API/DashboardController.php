@@ -409,6 +409,7 @@ class DashboardController extends Controller
             'nominal' => $request->nominal,
             'keterangan' => $request->keterangan,
             'jenis' => 'PENGELUARAN',
+            'kasir' => Auth::user()->username,
             'outletid' => $user_outlet, 
         ]);
 
@@ -460,7 +461,7 @@ class DashboardController extends Controller
         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
         ->where('outlets.id', $user_outlet)
         ->orWhere('outlets.parent', $user_outlet)
-        ->select('operasionals.*')
+        ->select('operasionals.*', 'outlets.nama_outlet')
         ->get();
         return $this->success('Success!', $operasional);
     }

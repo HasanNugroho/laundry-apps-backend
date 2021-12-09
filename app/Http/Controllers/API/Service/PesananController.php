@@ -186,7 +186,7 @@ class PesananController extends Controller
             $insert_pemasukan = DB::table('pesanans')
             ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
             ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-            ->select('pesanans.outletid', 'pesanans.jumlah', 'services.nama_layanan', 'services.item', 'pembayarans.tagihan')
+            ->select('pesanans.outletid', 'pesanans.jumlah', 'pesanans.kasir', 'services.nama_layanan', 'services.item', 'pembayarans.tagihan')
             ->where('pesanans.id', $id)
             ->where(DB::raw('upper(pembayarans.status)'), 'LUNAS')
             ->get();
@@ -198,6 +198,7 @@ class PesananController extends Controller
                     'nominal' => $insert_pemasukan[0]->tagihan,
                     'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
                     'jenis' => 'PEMASUKAN',
+                    'kasir' => $insert_pemasukan[0]->kasir, 
                     'outletid' => $insert_pemasukan[0]->outletid, 
                 ]);
 
@@ -225,7 +226,7 @@ class PesananController extends Controller
             $insert_pemasukan = DB::table('pesanans')
             ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
             ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-            ->select('pesanans.outletid', 'pesanans.jumlah', 'services.nama_layanan', 'services.item', 'pembayarans.tagihan')
+            ->select('pesanans.outletid', 'pesanans.jumlah', 'pesanans.kasir', 'services.nama_layanan', 'services.item', 'pembayarans.tagihan')
             ->where('pesanans.id', $id)
             ->where(DB::raw('upper(pembayarans.status)'), 'LUNAS')
             ->get();
@@ -235,6 +236,7 @@ class PesananController extends Controller
                     'nominal' => $insert_pemasukan[0]->tagihan,
                     'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
                     'jenis' => 'PEMASUKAN',
+                    'kasir' => $insert_pemasukan[0]->kasir, 
                     'outletid' => $insert_pemasukan[0]->outletid, 
                 ]);
             }
