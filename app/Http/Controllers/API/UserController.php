@@ -11,16 +11,6 @@ use Validator;
 class UserController extends Controller
 {
     use ApiResponser;
-    public function showall()
-    {
-        $user = User::all();
-        if ($user) {
-            return $this->success('Success!', $user);
-        }else{
-            return $this->error('Get Data Failed!', 400);       
-        }
-    }
-
     public function showdetil($id)
     {
         $user = User::where('uid', $id)->firstOrFail();
