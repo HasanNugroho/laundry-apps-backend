@@ -45,6 +45,7 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('/adriwayat', [PesananController::class, 'riwayatAdmin']);
     Route::get('/dashboard/adsearch', [DashboardController::class, 'searchAdmin']);
     Route::get('/dashboard/counttransaksi', [DashboardController::class, 'countTransaksiAdmin']);
+    Route::get('/dashboard/pesanan', [DashboardController::class, 'getPesananAdmin']);
 });
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
@@ -95,7 +96,6 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
-    Route::get('/users', [UserController::class, 'showall']);
     Route::get('/users/{id}', [UserController::class, 'showdetil']);
     Route::put('/users/{id}', [UserController::class, 'updaterole']);
 });
