@@ -47,6 +47,8 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('/dashboard/operasional', [DashboardController::class, 'operasionalOwner']);
     Route::get('/dashboard/counttransaksi', [DashboardController::class, 'countTransaksiAdmin']);
     Route::get('/dashboard/pesanan', [DashboardController::class, 'getPesananAdmin']);
+    Route::get('/dashboard/report', [DashboardController::class, 'report']);
+    Route::get('/dashboard/reportoperasional', [DashboardController::class, 'reportOperasional']);
 });
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
