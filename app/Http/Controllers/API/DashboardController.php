@@ -88,6 +88,7 @@ class DashboardController extends Controller
     public function pendapatanOwner()
     {
         $user_outlet = Auth::user()->outlet_id;
+        // DB::enableQueryLog(); // Enable query log
 
         $pendapatan = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
@@ -102,6 +103,7 @@ class DashboardController extends Controller
                 DB::raw('sum(operasionals.nominal) as "omset"'),
                 // DB::raw('operasionals.outletid as outletid')
             ));
+            // dd(DB::getQueryLog()); // Show results of log
 
         $totalpendapatan = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
@@ -497,18 +499,18 @@ class DashboardController extends Controller
             ->get();
         }
         
-        if($request->search == 'pelanggan'){DB::enableQueryLog();
+        if($request->search == 'pelanggan'){
             $user_outlet = Auth::user()->outlet_id;
             $search = DB::table('pelanggans')
             ->leftJoin('outlets', 'pelanggans.outletid', '=', 'outlets.id')
             ->where('pelanggans.nama', 'like', '%' . $request->q . '%')
             ->where('outlets.id', $user_outlet)
             ->orWhere('outlets.parent', $user_outlet)
-            ->select('pelanggans.id', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'pelanggans.created_at as date_join')
+            ->select('pelanggans.id', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'pelanggans.created_at')
             ->get();
         }
         
-        if($request->search == 'pesanan'){DB::enableQueryLog();
+        if($request->search == 'pesanan'){
             $user_outlet = Auth::user()->outlet_id;
             $search = DB::table('pesanans')
             ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
@@ -535,7 +537,7 @@ class DashboardController extends Controller
             ->get();
         }
         
-        if($request->search == 'operasional'){DB::enableQueryLog();
+        if($request->search == 'operasional'){
             $user_outlet = Auth::user()->outlet_id;
             $search = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
@@ -568,34 +570,18 @@ class DashboardController extends Controller
         
         $search = '';
         $user_outlet = Auth::user()->outlet_id;
-        if($request->search == 'kasir'){
-            $search = DB::table('users')
-            ->leftJoin('outlets', 'users.outlet_id', '=', 'outlets.id')
-            ->where(function($query) use($request) {
-                $query;
-                $query->where('users.username', 'like', '%' . $request->q . '%');
-                $query->orwhere('users.alamat', 'like', '%' . $request->q . '%');
-                $query->orwhere('users.whatsapp', 'like', '%' . $request->q . '%');
-                $query->orwhere('users.email', 'like', '%' . $request->q . '%');
-                // $query->orwhere('outlets.nama_outlet', 'like', '%' . $request->q . '%');
-                // $query->orwhere('outlets.alamat', 'like', '%' . $request->q . '%');
-            })
-            ->where('outlets.id', $user_outlet)
-            ->select('users.uid','users.username', 'users.email', 'users.role', 'users.alamat', 'users.whatsapp', 'users.status', 'users.created_at as date_join', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.alamat', 'outlets.sosial_media as sosial_media')
-            ->get();
-        }
         
-        if($request->search == 'pelanggan'){DB::enableQueryLog();
+        if($request->search == 'pelanggan'){
             $user_outlet = Auth::user()->outlet_id;
             $search = DB::table('pelanggans')
             ->leftJoin('outlets', 'pelanggans.outletid', '=', 'outlets.id')
             ->where('pelanggans.nama', 'like', '%' . $request->q . '%')
             ->where('outlets.id', $user_outlet)
-            ->select('pelanggans.id', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'pelanggans.created_at as date_join')
+            ->select('pelanggans.id', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'pelanggans.created_at')
             ->get();
         }
         
-        if($request->search == 'pesanan'){DB::enableQueryLog();
+        if($request->search == 'pesanan'){
             $user_outlet = Auth::user()->outlet_id;
             $search = DB::table('pesanans')
             ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
@@ -621,7 +607,7 @@ class DashboardController extends Controller
             ->get();
         }
         
-        if($request->search == 'operasional'){DB::enableQueryLog();
+        if($request->search == 'operasional'){
             $user_outlet = Auth::user()->outlet_id;
             $search = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
@@ -642,6 +628,8 @@ class DashboardController extends Controller
 
     public function getPesananAdmin(Request $request)
     {
+        // DB::enableQueryLog(); // Enable query log
+
         $user_outlet = Auth::user()->outlet_id;
         if($request->status){
             $pesanan = DB::table('pesanans')
@@ -676,5 +664,49 @@ class DashboardController extends Controller
         }else{
             return $this->error('Failed!', [ 'message' => 'Data Not Found'], 404);
         }
+    }
+    public function report(Request $request)
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        // DB::enableQueryLog(); // Enable query log
+        
+        $kiloan = DB::table('pesanans')
+            ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+            ->where('services.jenis', 'kiloan')
+            ->where('outlets.id', $user_outlet)
+            ->orWhere('outlets.parent', $user_outlet)
+            ->select(DB::raw('sum(pesanans.jumlah)'))
+            ->get();
+        
+        // $satuan = DB::table('pesanans')
+        //     ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        //     ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+        //     ->where('services.jenis', 'satuan')
+        //     ->where('outlets.id', $user_outlet)
+        //     ->orWhere('outlets.parent', $user_outlet)
+        //     ->select(DB::raw('sum(pesanans.jumlah)'))
+        //     ->get();
+        // dd(DB::getQueryLog()); // Show results of log
+
+
+        return $this->success('Success!', $kiloan);
+    }
+   
+    public function reportOperasional(Request $request)
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        $from = $request->from;
+        $to = $request->to;
+
+        $pendapatan = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->whereBetween('operasionals.created_at', [$from, $to])
+            // ->where('operasionals.jenis', 'PEMASUKAN')
+            ->where('outlets.id', $user_outlet)
+            ->orWhere('outlets.parent', $user_outlet)
+            ->get();
+
+        return $this->success('Success!', $pendapatan);
     }
 }
