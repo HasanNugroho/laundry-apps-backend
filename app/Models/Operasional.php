@@ -14,7 +14,9 @@ class Operasional extends Model
         'id',
         'nominal',
         'keterangan',
+        'idpesanan',
         'kasir',
+        'jenis_service',
         'jenis',
         'outletid',
     ];

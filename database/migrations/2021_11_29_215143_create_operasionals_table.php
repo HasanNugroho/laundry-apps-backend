@@ -15,7 +15,9 @@ class CreateOperasionalsTable extends Migration
     {
         Schema::create('operasionals', function (Blueprint $table) {
             $table->uuid('id');
+            $table->uuid('idpesanan');
             $table->string('jenis');
+            $table->string('jenis_service');
             $table->string('kasir', 100);
             $table->text('keterangan');
             $table->integer('nominal');

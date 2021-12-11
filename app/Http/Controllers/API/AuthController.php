@@ -6,11 +6,16 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use App\Traits\ApiResponser;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 use App\Models\User;
+use App\Models\verif;
 use App\Models\Invite;
+use App\Mail\Verif as MailVerif;
 use Validator;
 
 class AuthController extends Controller
@@ -18,31 +23,17 @@ class AuthController extends Controller
     use ApiResponser;
     public function register(Request $request)
     {
-        // $agent = new \Jenssegers\Agent\Agent;
-        // $platform = $agent->platform();
-
-        // $version = $agent->isAndroidOS($platform);
-        // dd($version);
-        
         $validator = Validator::make($request->all(),[
             'username' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'whatsapp' => 'required|string|unique:users',
             'alamat' => 'required|string',
-            // 'role' => 'required|string'
         ]);
         if($validator->fails()){
             return $this->error('Register Failed!', [ 'message' => $validator->errors()], 400);       
         }
 
-        // if($request->role == 'owner'){
-        //     $inputRole = 'owner';
-        // }elseif($request->role == 'admin'){
-        //     $inputRole = 'admin';
-        // }else{
-        //     $inputRole = 'karyawan';
-        // }
         $uuid = Str::uuid();
         $input = [
             'uid' => $uuid,
@@ -54,11 +45,41 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role' => "owner",
         ];
-        // $input = Arr::add($input, 'role' ,$inputRole);
-
-        $user = User::create($input);
-
-        return $this->success('Register Success!');
+        
+        DB::beginTransaction();
+        try {
+            $user = new User();
+            $user->uid = $input['uid'];
+            $user->username = $input['username'];
+            $user->email = $input['email'];
+            $user->whatsapp = $input['whatsapp'];
+            $user->alamat = $input['alamat'];
+            $user->status = $input['status'];
+            $user->password = $input['password'];
+            $user->role = $input['role'];
+            $user->save();
+            
+            $randomToken = $this->randomToken();
+            $details = [
+                'title' => 'Jet Laundry',
+                'body' => 'Verification',
+                'url' => URL::signedRoute('verif', ['token' => $randomToken])
+            ];
+            
+            $token = new verif();
+            $token->userid = $input['uid'];
+            $token->token = $randomToken;
+            $token->save();
+            
+            Mail::to($input['email'])->send(new MailVerif($details));
+            
+            DB::commit();
+            return $this->success('Register Success and Check Email to Verification!');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return $this->error('Register Failed!', [ 'message' => 'Send Email Verification Failed!'], 400);       
+        }
+        // dd("Email is Sent.");
     }
 
     public function login(Request $request)
@@ -73,7 +94,44 @@ class AuthController extends Controller
         }
 
         if (User::where('email', $request->email)->doesntExist()) {
-            return $this->error('Failed!', [ 'message' => 'User dont exist!'], 404);       
+            return $this->error('Failed!', [ 'message' => 'User don\'t exist!'], 404);       
+        }
+
+        $verifiy = DB::table('users')->where('email', $request->email)->whereNull('email_verified_at')->count();
+        // dd($verifiy);
+        if($verifiy){
+            $exist_token = DB::table('users')
+            ->rightJoin('verifs', 'verifs.userid', '=', 'users.uid')
+            ->where('users.email', $request->email)
+            ->whereNull('users.email_verified_at')
+            ->count('verifs.userid');
+            if ($exist_token) {
+                return $this->error('Failed!', [ 'message' => 'Please Verify Your Email Address'], 401);       
+            }else{
+                $data = DB::table('users')->where('email', $request->email)->select('uid', 'email')->get();
+                DB::beginTransaction();
+                try {
+                    $randomToken = $this->randomToken();
+                    $details = [
+                        'title' => 'Jet Laundry',
+                        'body' => 'Verification',
+                        'url' => URL::signedRoute('verif', ['token' => $randomToken])
+                    ];
+                    
+                    $token = new verif();
+                    $token->userid = $data[0]->uid;
+                    $token->token = $randomToken;
+                    $token->save();
+                    
+                    Mail::to($data[0]->email)->send(new MailVerif($details));
+                    
+                    DB::commit();
+                    return $this->error('Login Failed!', [ 'message' => 'Check Email to Verification!'], 401);       
+                } catch (\Throwable $th) {
+                    DB::rollBack();
+                    return $this->error('Login Failed!', [ 'message' => 'Login and Send Email Verification Failed!'], 401);       
+                }
+            }
         }
 
         if (!Auth::attempt($request->only('email', 'password')))
@@ -140,11 +198,94 @@ class AuthController extends Controller
             ];
         }
 
-        $user = User::create($input);
+        DB::beginTransaction();
+        try {
+            // dd($input);
+            $user = new User();
+            $user->uid = $input['uid'];
+            $user->username = $input['username'];
+            $user->email = $input['email'];
+            $user->whatsapp = $input['whatsapp'];
+            $user->alamat = $input['alamat'];
+            $user->status = $input['status'];
+            $user->password = $input['password'];
+            $user->role = $input['role'];
+            $user->outlet_id = $input['outlet_id'];
+            $user->save();
+            
+            $randomToken = $this->randomToken();
+            $details = [
+                'title' => 'Jet Laundry',
+                'body' => 'Verification',
+                'url' => URL::signedRoute('verif', ['token' => $randomToken])
+            ];
+            
+            $tokenVerif = new verif();
+            $tokenVerif->userid = $input['uid'];
+            $tokenVerif->token = $randomToken;
+            $tokenVerif->save();
+            
+            Mail::to($input['email'])->send(new MailVerif($details));
+            
+            DB::commit();
+            $token->delete();
+            return $this->success('Register Success and Check Email to Verification!');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            $token->delete();
+            return $this->error('Register Failed!', [ 'message' => 'Send Email Verification Failed!'], 400);       
+        }
 
-        $token->delete();
 
-        return $this->success('Register Success!');
     }
+
+    public function verif(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            'token' => 'required|string'
+        ]);
+
+        if($validator->fails()){
+            return $this->error('Register Failed!', [ 'message' => $validator->errors()], 400);       
+        }
+
+        if (verif::where('token', $request->token)->doesntExist()) {
+            return ("<script LANGUAGE='JavaScript'>
+            window.alert('token expired!');
+            </script>");
+        }
+        try {
+            $userid = verif::where('token', $request->token)->select('userid')->get();
     
+            User::where('uid', $userid[0]['userid'])->update(['email_verified_at' => now()]);
+            
+            verif::where('token', $request->token)->select('userid')->delete();
+
+            $hostname = env("FRONTEND_URL");
+
+            return ("<script LANGUAGE='JavaScript'>
+            window.alert('Succesfully Verify');
+            window.location.href='".$hostname."';
+            </script>");
+
+        } catch (\Throwable $th) {
+            return ("<script LANGUAGE='JavaScript'>
+            window.alert('Failed Verify');
+            </script>");
+        }
+    }
+
+    public function randomToken()
+    {
+        $strength = 60;
+        $permitted_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $input_length = strlen($permitted_chars);
+        $random_string = '';
+        for($i = 0; $i < $strength; $i++) {
+            $random_character = $permitted_chars[mt_rand(0, $input_length - 1)];
+            $random_string .= $random_character;
+        }
+    
+        return $random_string;
+    }
 }
