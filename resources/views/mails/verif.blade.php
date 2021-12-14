@@ -25,7 +25,8 @@
             font-size: 16px;
             font-weight: 600;
             width: 100%;
-            margin-top: 24px;
+            margin-top: 50px;
+            margin-bottom: 50px;
         }
         .footer p{
             text-align: center;
