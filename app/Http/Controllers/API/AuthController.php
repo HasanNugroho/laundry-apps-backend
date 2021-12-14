@@ -62,6 +62,7 @@ class AuthController extends Controller
             $randomToken = $this->randomToken();
             $details = [
                 'title' => 'Verify your email address',
+                'subject' => 'Verification Email',
                 'deskripsi' => 'Please confirm that you want to use this as your sellfy account email address. Once it\'s done you will be able to start selling!',
                 'url' => URL::signedRoute('verif', ['token' => $randomToken])
             ];
@@ -114,6 +115,7 @@ class AuthController extends Controller
                     $randomToken = $this->randomToken();
                     $details = [
                         'title' => 'Verify your email address',
+                        'subject' => 'Verification Email',
                         'deskripsi' => 'Please confirm that you want to use this as your sellfy account email address. Once it\'s done you will be able to start selling!',
                         'url' => URL::signedRoute('verif', ['token' => $randomToken])
                     ];
@@ -216,6 +218,7 @@ class AuthController extends Controller
             $randomToken = $this->randomToken();
             $details = [
                 'title' => 'Verify your email address',
+                'subject' => 'Verification Email',
                 'deskripsi' => 'Please confirm that you want to use this as your sellfy account email address. Once it\'s done you will be able to start selling!',
                 'url' => URL::signedRoute('verif', ['token' => $randomToken])
             ];

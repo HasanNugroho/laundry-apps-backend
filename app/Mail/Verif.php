@@ -28,7 +28,7 @@ class Verif extends Mailable
      */
     public function build()
     {
-        return $this->subject('Verification Email')
+        return $this->subject($this->details['subject'])
                     ->with([
                         'title' => $this->details['title'],
                         'deskripsi' => $this->details['deskripsi'],
