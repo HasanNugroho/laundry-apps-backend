@@ -31,6 +31,7 @@ class Verif extends Mailable
         return $this->subject('Verification Email')
                     ->with([
                         'title' => $this->details['title'],
+                        'deskripsi' => $this->details['deskripsi'],
                         'url' => $this->details['url'],
                     ])
                     ->view('mails.verif');
