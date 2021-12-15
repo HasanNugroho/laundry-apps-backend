@@ -639,8 +639,11 @@ class DashboardController extends Controller
                 ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
                 ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
                 ->where(DB::raw('upper(pesanans.status)'), Str::upper($request->status))
-                ->where('outlets.id', $user_outlet)
-                ->orWhere('outlets.parent', $user_outlet)
+                ->where(function($query) use($user_outlet) {
+                    $query;
+                    $query->where('outlets.id', $user_outlet);
+                    $query->orWhere('outlets.parent', $user_outlet);
+                })
                 ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
                 ->get();
         }else{
