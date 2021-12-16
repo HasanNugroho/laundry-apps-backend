@@ -52,12 +52,14 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
 });
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('/dashboard/kroperasional', [DashboardController::class, 'operasionalKaryawan']);
     Route::get('/dashboard/krutang', [DashboardController::class, 'nominalutangKasir']);
     Route::get('/dashboard/kromset', [DashboardController::class, 'pendapatanKasir']);
     Route::get('/dashboard/krtransaksi', [DashboardController::class, 'transaksiKasir']);
     Route::get('/dashboard/krcounttransaksi', [DashboardController::class, 'countTransaksiKasir']);
     Route::get('/dashboard/krpengeluaran', [DashboardController::class, 'pengeluaranKasir']);
     Route::get('/dashboard/krsearch', [DashboardController::class, 'searchKasir']);
+    Route::get('/riwayat', [PesananController::class, 'riwayat']);
 });
 
 //pelanggan
@@ -149,11 +151,6 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/status/pesanan', [AssetController::class, 'status_pesanan']);
     Route::get('/status/pembayaran', [AssetController::class, 'status_pembayaran']);
-});
-
-//riwayat
-Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::get('/riwayat', [PesananController::class, 'riwayatAdmin']);
 });
 
 Route::fallback(function () {

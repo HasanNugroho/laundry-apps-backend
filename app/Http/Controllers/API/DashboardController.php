@@ -467,6 +467,17 @@ class DashboardController extends Controller
         ->get();
         return $this->success('Success!', $operasional);
     }
+    
+    public function operasionalKaryawan()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        $operasional = DB::table('operasionals')
+        ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        ->where('outlets.id', $user_outlet)
+        ->select('operasionals.*', 'outlets.nama_outlet')
+        ->get();
+        return $this->success('Success!', $operasional);
+    }
 
     public function searchAdmin(Request $request)
     {
