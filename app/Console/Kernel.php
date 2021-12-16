@@ -6,6 +6,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
 use App\Models\Invite;
 use App\Models\verif;
+use App\Models\PasswordReset;
 use Carbon\Carbon;
 
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -35,6 +36,10 @@ class Kernel extends ConsoleKernel
         
         $schedule->call(function () {
             verif::where('created_at', '<=', Carbon::now()->addMinutes(1))->delete();
+        })->everyMinute();
+        
+        $schedule->call(function () {
+            PasswordReset::where('created_at', '<=', Carbon::now()->addMinutes(10))->delete();
         })->everyMinute();
 
     }

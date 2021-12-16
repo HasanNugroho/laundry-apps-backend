@@ -25,8 +25,8 @@
             font-size: 16px;
             font-weight: 600;
             width: 100%;
-            margin-top: 50px;
-            margin-bottom: 50px;
+            margin-top: 75px;
+            margin-bottom: 75px;
         }
         .footer p{
             text-align: center;
@@ -35,9 +35,10 @@
 </head>
 <body>
     <div class="card">
-        <h2>{{$title}}</h2>
-    <p>{{$deskripsi}}</p>
-    <a href={{ $url }} class="button" >Verify Email Address</a>
+        <h2>{{ $title }}</h2>
+        <p>{{ $deskripsi }}</p>
+        <a href={{ $url }} class="button" >Change Password</a>
+        <p>{{ $footer }}</p>
     </div>
     <div class="footer">
         <p>2021 Laundrynotes. All right reserved.</p>

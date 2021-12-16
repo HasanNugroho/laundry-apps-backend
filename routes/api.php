@@ -27,7 +27,11 @@ use App\Http\Controllers\API\Service\PelangganController;
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/registerKr', [AuthController::class, 'registerKaryawan'])->name('registerKaryawan');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/forget-password', [AuthController::class, 'forgetPassword'])->name('forgetPassword');
 
+// Route::group(['middleware' => ['signed']], function () {
+    Route::put('/forgetpass', [AuthController::class, 'updatePassword'])->name('forgetpass')->middleware('signed');
+// });
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/logout', [AuthController::class, 'logout']);

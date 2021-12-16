@@ -13,9 +13,11 @@ use App\Traits\ApiResponser;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 use App\Models\User;
+use App\Models\PasswordReset;
 use App\Models\verif;
 use App\Models\Invite;
 use App\Mail\Verif as MailVerif;
+use App\Mail\ResetPassword as MailPassword;
 use Validator;
 
 class AuthController extends Controller
@@ -231,15 +233,13 @@ class AuthController extends Controller
             Mail::to($input['email'])->send(new MailVerif($details));
             
             DB::commit();
-            $token->delete();
+            // $token->delete();
             return $this->success('Register Success and Check Email to Verification!');
         } catch (\Throwable $th) {
             DB::rollBack();
-            $token->delete();
+            // $token->delete();
             return $this->error('Register Failed!', [ 'message' => 'Send Email Verification Failed!'], 400);       
         }
-
-
     }
 
     public function verif(Request $request)
@@ -275,6 +275,82 @@ class AuthController extends Controller
             return ("<script LANGUAGE='JavaScript'>
             window.alert('Failed Verify');
             </script>");
+        }
+    }
+
+    public function forgetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            'email' => 'required|string|email',
+        ]);
+
+        if($validator->fails()){
+            return $this->error('Change Password Failed!', [ 'message' => $validator->errors()], 400);       
+        }
+
+        if (User::where('email', $request->email)->doesntExist()) {
+            return $this->error('Failed!', [ 'message' => 'User Not Exist'], 404);       
+        }
+        
+        $notvalidate = User::where('email', $request->email)->where('email_verified_at', null)->count();
+        // dd($notvalidate);
+        if ($notvalidate > 0) {
+            return $this->error('Failed!', [ 'message' => 'You must verification email'], 404);       
+        }
+
+        DB::beginTransaction();
+        try {
+            $randomToken = $this->randomToken();
+            $resetpassword = new PasswordReset();
+            $resetpassword->email = $request->email;
+            $resetpassword->token = $randomToken;
+            $resetpassword->created_at = now();
+            $resetpassword->save();
+            
+            $hostname = env("FRONTEND_URL");
+            $redirect = URL::signedRoute('forgetpass',['token' => $randomToken]);
+
+            $details = [
+                'title' => 'Change Your Password',
+                'subject' => 'Change Password',
+                'deskripsi' => 'Please use the following link to reset your password',
+                'footer' => 'If you did not request a password change, please feel free to ignore this message.',
+                'url' => $hostname.'/forget?token='. $randomToken . '&redirect=' . $redirect
+            ];
+            
+            Mail::to($request->email)->send(new MailPassword($details));
+            
+            DB::commit();
+            return $this->success('Check Email to Change Password!');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return $this->error('Change Password Failed!', [ 'message' => 'Send Email Change Password Failed!'], 400);       
+        }
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            'newPassword' => 'required|string|min:8',
+            'token' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return $this->error('Change Password Failed!', [ 'message' => $validator->errors()], 400);       
+        }
+        
+        
+        if (PasswordReset::where('token', $request->token)->doesntExist()) {
+            return $this->error('Change Password Failed!', [ 'message' => 'token expired!'], 400);       
+        }
+        try {
+            $emailUpdate = PasswordReset::where('token', $request->token)->select('email')->first();
+            
+            User::where('email', $emailUpdate->email)->update(['password' =>  Hash::make($request->newPassword)]);
+            
+            return $this->success('Change Password Success!');
+        } catch (\Throwable $th) {
+            return $this->error('Change Password Failed!', 400);       
         }
     }
 

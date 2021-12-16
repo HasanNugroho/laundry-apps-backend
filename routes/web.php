@@ -17,4 +17,4 @@ use App\Http\Controllers\API\AuthController;
 //Route::get('/', function () {
 //    return view('welcome');
 //});
-Route::get('/verif', [AuthController::class, 'verif'])->name('verif');
+Route::get('/verif', [AuthController::class, 'verif'])->middleware(['signed'])->name('verif');
