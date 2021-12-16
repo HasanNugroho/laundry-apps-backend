@@ -283,23 +283,22 @@ class PesananController extends Controller
         $user_outlet = Auth::user()->outlet_id;
         if($request){
             $pesanan = DB::table('pesanans')
-                ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
-                ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-                ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
-                ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
-                ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-                ->whereDate('pesanans.updated_at', Carbon::today())
-                ->where('pesanans.outletid', $user_outlet)
-                ->where('pesanans.status', 'SELESAI')
-                ->where(function($query) use($request) {
-                    $query;
-                    $query->where(DB::raw('upper(pesanans.nota_transaksi)'), 'like', DB::raw('upper(\'%' . $request->search . '%\')'));
-                    $query->orwhere(DB::raw('upper(pelanggans.nama)'), 'like', DB::raw('upper(\'%' . $request->search . '%\')'));
-                    $query->orwhere(DB::raw('upper(services.nama_layanan)'), 'like', DB::raw('upper(\'%' . $request->search . '%\')'));
-                    $query->orwhere(DB::raw('upper(waktus.paket)'), 'like', DB::raw('upper(\'%' . $request->search . '%\')'));
-                })
-                ->select('pelanggans.nama', 'pesanans.nota_transaksi', 'pembayarans.status', 'waktus.paket', 'services.nama_layanan', 'outlets.nama_outlet', 'outlets.status_outlet', 'pesanans.created_at', 'pesanans.updated_at')
-                ->get();
+            ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+            ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+            ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+            ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+            ->where(function($query) use($request) {
+                $query;
+                $query->where(DB::raw('upper(pesanans.nota_transaksi)'), 'like', DB::raw('upper(\'%' . $request->search . '%\')'));
+                $query->orwhere(DB::raw('upper(pelanggans.nama)'), 'like', DB::raw('upper(\'%' . $request->search . '%\')'));
+                $query->orwhere(DB::raw('upper(services.nama_layanan)'), 'like', DB::raw('upper(\'%' . $request->search . '%\')'));
+                $query->orwhere(DB::raw('upper(waktus.paket)'), 'like', DB::raw('upper(\'%' . $request->search . '%\')'));
+            })
+            ->where('pesanans.status', 'SELESAI')
+            ->where('outlets.id', $user_outlet)
+            ->select('pelanggans.nama', 'pesanans.nota_transaksi', 'pembayarans.status', 'waktus.paket', 'services.nama_layanan', 'outlets.nama_outlet', 'outlets.status_outlet', 'pesanans.created_at', 'pesanans.updated_at')
+            ->get();
         }else{
             $pesanan = DB::table('pesanans')
                 ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
@@ -307,9 +306,8 @@ class PesananController extends Controller
                 ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
                 ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
                 ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-                ->whereDate('pesanans.updated_at', Carbon::today())
-                ->where('pesanans.outletid', $user_outlet)
                 ->where('pesanans.status', 'SELESAI')
+                ->where('outlets.id', $user_outlet)
                 ->select('pelanggans.nama', 'pesanans.nota_transaksi', 'pembayarans.status', 'waktus.paket', 'services.nama_layanan', 'outlets.nama_outlet', 'outlets.status_outlet', 'pesanans.created_at', 'pesanans.updated_at')
                 ->get();
         }
