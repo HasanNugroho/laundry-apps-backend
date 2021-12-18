@@ -19,9 +19,9 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        'App\Console\Commands\deleteInvite',
-        'App\Console\Commands\deleteTokenPasswordReset',
-        'App\Console\Commands\deleteVerify',
+        Commands\deleteInvite::class,
+        Commands\deleteTokenPasswordReset::class,
+        Commands\deleteVerify::class,
     ];
 
     /**
@@ -32,9 +32,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule-->command('deleteinvite --force')->daily();
-        $schedule-->command('deleteTokenPassword --force')->everyMinute();
-        $schedule-->command('deleteverif --force')->everyMinute();
+        $schedule->command('deleteinvite --force')->daily();
+        $schedule->command('deleteTokenPassword --force')->everyMinute();
+        $schedule->command('deleteverif --force')->everyMinute();
     }
 
     /**
