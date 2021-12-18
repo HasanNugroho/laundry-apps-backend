@@ -12,7 +12,7 @@ class deleteInvite extends Command
      *
      * @var string
      */
-    protected $signature = 'deleteinvite';
+    protected $signature = 'delete:invite';
 
     /**
      * The console command description.
@@ -38,6 +38,7 @@ class deleteInvite extends Command
      */
     public function handle()
     {
+        \Log::info("Cron is working fine!");
         Invite::truncate();
         return Command::SUCCESS;
     }

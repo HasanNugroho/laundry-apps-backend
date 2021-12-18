@@ -13,7 +13,7 @@ class deleteVerify extends Command
      *
      * @var string
      */
-    protected $signature = 'deleteverif';
+    protected $signature = 'delete:verif';
 
     /**
      * The console command description.
@@ -39,6 +39,7 @@ class deleteVerify extends Command
      */
     public function handle()
     {
+        \Log::info("Cron is working fine!");
         verif::where('expired', '<', Carbon::now())->delete();
         return Command::SUCCESS;
     }

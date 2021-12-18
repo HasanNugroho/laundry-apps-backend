@@ -13,7 +13,7 @@ class deleteTokenPasswordReset extends Command
      *
      * @var string
      */
-    protected $signature = 'deleteTokenPassword';
+    protected $signature = 'delete:tokenPassword';
 
     /**
      * The console command description.
@@ -39,6 +39,7 @@ class deleteTokenPasswordReset extends Command
      */
     public function handle()
     {
+        \Log::info("Cron is working fine!");
         PasswordReset::where('expired', '<', Carbon::now())->delete();
         return Command::SUCCESS;
     }

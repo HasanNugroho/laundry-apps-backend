@@ -3,11 +3,6 @@
 namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Support\Facades\DB;
-use App\Models\Invite;
-use App\Models\verif;
-use App\Models\PasswordReset;
-use Carbon\Carbon;
 
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -32,9 +27,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('deleteinvite --force')->daily();
-        $schedule->command('deleteTokenPassword --force')->everyMinute();
-        $schedule->command('deleteverif --force')->everyMinute();
+        $schedule->command('delete:invite')->daily();
+        $schedule->command('delete:tokenPassword')->everyMinute();
+        $schedule->command('delete:verif')->everyMinute();
     }
 
     /**
