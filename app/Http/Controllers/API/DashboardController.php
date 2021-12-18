@@ -565,7 +565,7 @@ class DashboardController extends Controller
             ->get();
         }
         
-        return $this->success('Success!', [$search]);
+        return $this->success('Success!', $search);
     }
     
     public function searchKasir(Request $request)
@@ -634,7 +634,7 @@ class DashboardController extends Controller
             ->get();
         }
         
-        return $this->success('Success!', [$search]);
+        return $this->success('Success!', $search);
     }
 
     public function getPesananAdmin(Request $request)

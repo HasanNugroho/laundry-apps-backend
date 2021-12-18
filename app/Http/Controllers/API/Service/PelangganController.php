@@ -19,14 +19,14 @@ class PelangganController extends Controller
         $validator = Validator::make($request->all(),[
             'nama' => 'required|string|max:255',
             'alamat' => 'required|string',
-            'whatsapp' => 'required|string|unique:pelanggans'
+            'whatsapp' => 'required'
         ]);
 
         if($validator->fails()){
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
 
-        if (Pelanggan::where('nama', '=', $request->nama)->exists()) {
+        if (Pelanggan::where('outletid', Auth::user()['outlet_id'])->where('nama', '=', $request->nama)->exists()) {
             return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
         }
         
@@ -83,7 +83,7 @@ class PelangganController extends Controller
         $validator = Validator::make($request->all(),[
             'nama' => 'string|max:255',
             'alamat' => 'string',
-            'whatsapp' => 'string|unique:pelanggans'
+            'whatsapp' => 'string'
         ]);
 
         if($validator->fails()){
