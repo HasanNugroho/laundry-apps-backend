@@ -230,7 +230,7 @@ class AuthController extends Controller
             $tokenVerif = new verif();
             $tokenVerif->userid = $input['uid'];
             $tokenVerif->token = $randomToken;
-            $token->expired = now()->addMinutes(10);
+            $tokenVerif->expired = now()->addMinutes(10);
             $tokenVerif->save();
             
             Mail::to($input['email'])->send(new MailVerif($details));
