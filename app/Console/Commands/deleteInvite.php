@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use App\Models\Invite;
 
 class deleteInvite extends Command
@@ -38,7 +39,7 @@ class deleteInvite extends Command
      */
     public function handle()
     {
-        \Log::info("Cron is working fine!");
+        Log::channel('cron')->info('cron delete token invite running');
         Invite::truncate();
         return Command::SUCCESS;
     }

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use App\Models\verif;
 
 class deleteVerify extends Command
@@ -39,7 +40,7 @@ class deleteVerify extends Command
      */
     public function handle()
     {
-        \Log::info("Cron is working fine!");
+        Log::channel('cron')->info('cron delete token verify running');
         verif::where('expired', '<', Carbon::now())->delete();
         return Command::SUCCESS;
     }

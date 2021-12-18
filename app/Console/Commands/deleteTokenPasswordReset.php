@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\PasswordReset;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class deleteTokenPasswordReset extends Command
@@ -39,7 +40,7 @@ class deleteTokenPasswordReset extends Command
      */
     public function handle()
     {
-        \Log::info("Cron is working fine!");
+        Log::channel('cron')->info('cron delete token password running');
         PasswordReset::where('expired', '<', Carbon::now())->delete();
         return Command::SUCCESS;
     }
