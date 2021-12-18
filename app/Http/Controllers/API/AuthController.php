@@ -63,9 +63,9 @@ class AuthController extends Controller
             
             $randomToken = $this->randomToken();
             $details = [
-                'title' => 'Verify your email address',
-                'subject' => 'Verification Email',
-                'deskripsi' => 'Please confirm that you want to use this as your sellfy account email address. Once it\'s done you will be able to start selling!',
+                'title' => 'Verifikasi Email',
+                'subject' => 'Verivikasi Email',
+                'deskripsi' => 'Silahkan Klik Link dibawah ini untuk proses verifikasi, (link hanya bisa diakses selama 10 menit) Once it\'s done you will be able to start selling!',
                 'url' => URL::signedRoute('verif', ['token' => $randomToken])
             ];
             
@@ -110,16 +110,16 @@ class AuthController extends Controller
             ->whereNull('users.email_verified_at')
             ->count('verifs.userid');
             if ($exist_token) {
-                return $this->error('Failed!', [ 'message' => 'Please Verify Your Email Address'], 401);       
+                return $this->error('Failed!', [ 'message' => 'Please Verifikasi Email'], 401);       
             }else{
                 $data = DB::table('users')->where('email', $request->email)->select('uid', 'email')->get();
                 DB::beginTransaction();
                 try {
                     $randomToken = $this->randomToken();
                     $details = [
-                        'title' => 'Verify your email address',
-                        'subject' => 'Verification Email',
-                        'deskripsi' => 'Please confirm that you want to use this as your sellfy account email address. Once it\'s done you will be able to start selling!',
+                        'title' => 'Verifikasi Email',
+                        'subject' => 'Verivikasi Email',
+                        'deskripsi' => 'Silahkan Klik Link dibawah ini untuk proses verifikasi, (link hanya bisa diakses selama 10 menit) Once it\'s done you will be able to start selling!',
                         'url' => URL::signedRoute('verif', ['token' => $randomToken])
                     ];
                     
@@ -221,9 +221,9 @@ class AuthController extends Controller
             
             $randomToken = $this->randomToken();
             $details = [
-                'title' => 'Verify your email address',
-                'subject' => 'Verification Email',
-                'deskripsi' => 'Please confirm that you want to use this as your sellfy account email address. Once it\'s done you will be able to start selling!',
+                'title' => 'Verifikasi Email',
+                'subject' => 'Verivikasi Email',
+                'deskripsi' => 'Silahkan Klik Link dibawah ini untuk proses verifikasi, (link hanya bisa diakses selama 10 menit)',
                 'url' => URL::signedRoute('verif', ['token' => $randomToken])
             ];
             
@@ -298,7 +298,7 @@ class AuthController extends Controller
         $notvalidate = User::where('email', $request->email)->where('email_verified_at', null)->count();
         // dd($notvalidate);
         if ($notvalidate > 0) {
-            return $this->error('Failed!', [ 'message' => 'You must verification email'], 404);       
+            return $this->error('Failed!', [ 'message' => 'You must Verivikasi Email'], 404);       
         }
 
         DB::beginTransaction();
@@ -315,10 +315,10 @@ class AuthController extends Controller
             $redirect = URL::signedRoute('forgetpass',['token' => $randomToken]);
 
             $details = [
-                'title' => 'Change Your Password',
-                'subject' => 'Change Password',
-                'deskripsi' => 'Please use the following link to reset your password',
-                'footer' => 'If you did not request a password change, please feel free to ignore this message.',
+                'title' => 'Ubah Password',
+                'subject' => 'Ubah Password',
+                'deskripsi' => 'Silahkan klik link dibawah ini untuk mengubah password (link hanya bisa diakses selama 10 menit)',
+                'footer' => 'jika kamu merasa tidak mengubah password, mohon abaikan pesan ini',
                 'url' => $hostname.'/forget?token='. $randomToken . '&redirect=' . $redirect
             ];
             
