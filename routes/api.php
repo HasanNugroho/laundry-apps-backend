@@ -90,8 +90,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 // pesanan
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/pesanan', [PesananController::class, 'create']);
-    Route::get('/pesanan/outlet/{outletid}/{status}', [PesananController::class, 'getPesanan']);
-    Route::get('/pesanan/{nota}', [PesananController::class, 'getPesanandetail']);
+    Route::get('/pesanan/{status}', [PesananController::class, 'getPesanan']);
+    Route::get('/pesanan/detail/{nota}', [PesananController::class, 'getPesanandetail']);
     Route::put('/pesanan/status/{id}', [PesananController::class, 'updatestatuspesanan']);
     Route::put('/pesanan/status/pembayaran/{id}', [PesananController::class, 'updatestatuspembayaran']);
 });

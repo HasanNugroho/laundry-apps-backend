@@ -132,8 +132,9 @@ class PesananController extends Controller
 
     }
 
-    public function getPesanan($outletid, $status)
+    public function getPesanan($status)
     {
+        $user_outlet = Auth::user()->outlet_id;
         // DB::enableQueryLog(); // Enable query log
 
         $pesanan = DB::table('pesanans')
@@ -142,8 +143,8 @@ class PesananController extends Controller
             ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
             ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
             ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-            ->where('pesanans.outletid', $outletid)
-            ->where('pesanans.status', $status)
+            ->where('pesanans.outletid', $user_outlet)
+            ->where(DB::raw('upper(pesanans.status)'), Str::upper($status))
             ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
             ->get();
         // dd(DB::getQueryLog()); // Show results of log
@@ -158,22 +159,30 @@ class PesananController extends Controller
     
     public function getPesanandetail($nota)
     {
+        $validasiLogin = Pesanan::where('nota_transaksi', $nota)->select('outletid')->first();
+
+        if($validasiLogin['outletid'] != Auth::user()->outlet_id){
+            return $this->error('Failed!', [ 'message' => 'You are not allowed!'], 400);       
+        }
+
         $pesanan = DB::table('pesanans')
             ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
             ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
             ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-            ->where('pesanans.nota_transaksi', $nota)
+            ->where('pesanans.nota_transaksi', '=', $nota)
             ->get();
         
-        if($pesanan){
-            return $this->success('Success!', $pesanan);
-        }else{
-            return $this->error('Failed!', [ 'message' => 'Data Not Found'], 404);
-        }
+        return $this->success('Success!', $pesanan);
     }
 
     public function updatestatuspesanan($id, Request $request)
     {
+        $validasiLogin = Pesanan::where('id', $id)->select('outletid')->first();
+
+        if($validasiLogin['outletid'] != Auth::user()->outlet_id){
+            return $this->error('Failed!', [ 'message' => 'You are not allowed!'], 400);       
+        }
+
         $validator = Validator::make($request->all(),[
             'status' => 'required|string'
         ]);
@@ -227,6 +236,12 @@ class PesananController extends Controller
     
     public function updatestatuspembayaran($id, Request $request)
     {
+        $validasiLogin = Pesanan::where('id', $id)->select('outletid')->first();
+
+        if($validasiLogin['outletid'] != Auth::user()->outlet_id){
+            return $this->error('Failed!', [ 'message' => 'You are not allowed!'], 400);       
+        }
+
         $validator = Validator::make($request->all(),[
             'status' => 'required|string'
         ]);
