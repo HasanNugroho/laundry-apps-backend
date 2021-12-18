@@ -72,6 +72,7 @@ class AuthController extends Controller
             $token = new verif();
             $token->userid = $input['uid'];
             $token->token = $randomToken;
+            $token->expired = now()->addMinutes(10);
             $token->save();
             
             Mail::to($input['email'])->send(new MailVerif($details));
@@ -125,6 +126,7 @@ class AuthController extends Controller
                     $token = new verif();
                     $token->userid = $data[0]->uid;
                     $token->token = $randomToken;
+                    $token->expired = now()->addMinutes(10);
                     $token->save();
                     
                     Mail::to($data[0]->email)->send(new MailVerif($details));
@@ -228,6 +230,7 @@ class AuthController extends Controller
             $tokenVerif = new verif();
             $tokenVerif->userid = $input['uid'];
             $tokenVerif->token = $randomToken;
+            $token->expired = now()->addMinutes(10);
             $tokenVerif->save();
             
             Mail::to($input['email'])->send(new MailVerif($details));
@@ -305,6 +308,7 @@ class AuthController extends Controller
             $resetpassword->email = $request->email;
             $resetpassword->token = $randomToken;
             $resetpassword->created_at = now();
+            $resetpassword->expired = now()->addMinutes(10);
             $resetpassword->save();
             
             $hostname = env("FRONTEND_URL");

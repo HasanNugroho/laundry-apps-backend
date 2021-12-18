@@ -12,4 +12,7 @@ class verif extends Model
         'userid',
         'token'
     ];
+    protected $casts = [
+        'expired' => 'datetime',
+    ];
 }

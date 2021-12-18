@@ -10,10 +10,11 @@ class PasswordReset extends Model
     use HasFactory;
     public $timestamps = false;
     protected $fillable = [
-        'status',
-        'type'
+        'email',
+        'token'
     ];
     protected $casts = [
         'created_at' => 'datetime',
+        'expired' => 'datetime',
     ];
 }

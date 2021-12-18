@@ -19,7 +19,9 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        'App\Console\Commands\deleteInvite',
+        'App\Console\Commands\deleteTokenPasswordReset',
+        'App\Console\Commands\deleteVerify',
     ];
 
     /**
@@ -30,18 +32,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->call(function () {
-            Invite::truncate();
-        })->daily();
-        
-        $schedule->call(function () {
-            verif::where('created_at', '<=', Carbon::now()->addMinutes(1))->delete();
-        })->everyMinute();
-        
-        $schedule->call(function () {
-            PasswordReset::where('created_at', '<=', Carbon::now()->addMinutes(10))->delete();
-        })->everyMinute();
-
+        $schedule-->command('deleteinvite --force')->daily();
+        $schedule-->command('deleteTokenPassword --force')->everyMinute();
+        $schedule-->command('deleteverif --force')->everyMinute();
     }
 
     /**
