@@ -40,8 +40,10 @@ class deleteTokenPasswordReset extends Command
      */
     public function handle()
     {
-        Log::channel('cron')->info('cron delete token password running');
-        PasswordReset::where('expired', '<', Carbon::now())->delete();
+        $delete = PasswordReset::where('expired', '<', Carbon::now())->delete();
+        if($delete){
+            Log::channel('cron')->info('cron delete token password running');
+        }
         return Command::SUCCESS;
     }
 }

@@ -39,8 +39,10 @@ class deleteInvite extends Command
      */
     public function handle()
     {
-        Log::channel('cron')->info('cron delete token invite running');
-        Invite::truncate();
+        $delete = Invite::truncate();
+        if($delete){
+            Log::channel('cron')->info('cron delete token invite running');
+        }
         return Command::SUCCESS;
     }
 }
