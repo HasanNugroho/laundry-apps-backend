@@ -744,7 +744,7 @@ class DashboardController extends Controller
         
         $totalpemasukan = $totalpendapatan[0]->pendapatan - $totalpengeluaran[0]->pengeluaran;
 
-        return $this->success('Success!', $totalpemasukan);
+        return $this->success('Success!', ['totalPendapatan' => $totalpemasukan]);
     }
     
     public function totalPemasukanKasir()
@@ -765,6 +765,6 @@ class DashboardController extends Controller
         
         $totalpemasukan = $totalpendapatan[0]->pendapatan - $totalpengeluaran[0]->pengeluaran;
 
-        return $this->success('Success!', $totalpemasukan);
+        return $this->success('Success!', ['totalPendapatan' => $totalpemasukan]);
     }
 }
