@@ -53,6 +53,7 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('/dashboard/pesanan', [DashboardController::class, 'getPesananAdmin']);
     Route::get('/dashboard/report', [DashboardController::class, 'report']);
     Route::get('/dashboard/reportoperasional', [DashboardController::class, 'reportOperasional']);
+    Route::get('/dashboard/totalpendapatan', [DashboardController::class, 'totalPemasukanAdmin']);
 });
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
@@ -63,6 +64,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/dashboard/krcounttransaksi', [DashboardController::class, 'countTransaksiKasir']);
     Route::get('/dashboard/krpengeluaran', [DashboardController::class, 'pengeluaranKasir']);
     Route::get('/dashboard/krsearch', [DashboardController::class, 'searchKasir']);
+    Route::get('/dashboard/krtotalpendapatan', [DashboardController::class, 'totalPemasukanKasir']);
     Route::get('/riwayat', [PesananController::class, 'riwayat']);
 });
 

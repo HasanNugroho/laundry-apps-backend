@@ -193,7 +193,7 @@ class DashboardController extends Controller
 
         $pengeluaran = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-            ->where('operasionals.created_at', '>=', Carbon::now()->subMonth())
+            // ->where('operasionals.created_at', '>=', Carbon::now()->subMonth())
             ->where('operasionals.jenis', 'PENGELUARAN')
             ->where('outlets.id', $user_outlet)
             ->groupBy('date', 'outletid')
@@ -722,5 +722,49 @@ class DashboardController extends Controller
             ->get();
 
         return $this->success('Success!', $pendapatan);
+    }
+    
+    public function totalPemasukanAdmin()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+
+        $totalpendapatan = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.jenis', 'PEMASUKAN')
+            ->where('outlets.id', $user_outlet)
+            ->orWhere('outlets.parent', $user_outlet)
+            ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
+        
+        $totalpengeluaran = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.jenis', 'PENGELUARAN')
+            ->where('outlets.id', $user_outlet)
+            ->orWhere('outlets.parent', $user_outlet)
+            ->get(DB::raw('sum(operasionals.nominal) as "pengeluaran"'));
+        
+        $totalpemasukan = $totalpendapatan[0]->pendapatan - $totalpengeluaran[0]->pengeluaran;
+
+        return $this->success('Success!', $totalpemasukan);
+    }
+    
+    public function totalPemasukanKasir()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+
+        $totalpendapatan = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.jenis', 'PEMASUKAN')
+            ->where('outlets.id', $user_outlet)
+            ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
+        
+        $totalpengeluaran = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.jenis', 'PENGELUARAN')
+            ->where('outlets.id', $user_outlet)
+            ->get(DB::raw('sum(operasionals.nominal) as "pengeluaran"'));
+        
+        $totalpemasukan = $totalpendapatan[0]->pendapatan - $totalpengeluaran[0]->pengeluaran;
+
+        return $this->success('Success!', $totalpemasukan);
     }
 }
