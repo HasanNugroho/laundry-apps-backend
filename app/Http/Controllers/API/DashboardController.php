@@ -103,7 +103,8 @@ class DashboardController extends Controller
                 DB::raw('sum(operasionals.nominal) as "omset"'),
                 // DB::raw('operasionals.outletid as outletid')
             ));
-            // dd(DB::getQueryLog()); // Show results of log
+        
+        dd(DB::getQueryLog()); // Show results of log
 
         $totalpendapatan = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
@@ -582,17 +583,17 @@ class DashboardController extends Controller
         $search = '';
         $user_outlet = Auth::user()->outlet_id;
         
-        if($request->search == 'pelanggan'){
+        if(Str::lower($request->search) == 'pelanggan'){
             $user_outlet = Auth::user()->outlet_id;
             $search = DB::table('pelanggans')
             ->leftJoin('outlets', 'pelanggans.outletid', '=', 'outlets.id')
-            ->where('pelanggans.nama', 'like', '%' . $request->q . '%')
+            ->where(DB::raw('lower(pelanggans.nama)'), 'like', '%' . str::lower($request->q) . '%')
             ->where('outlets.id', $user_outlet)
             ->select('pelanggans.id', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'pelanggans.created_at')
             ->get();
         }
         
-        if($request->search == 'pesanan'){
+        if(Str::lower($request->search) == 'pesanan'){
             $user_outlet = Auth::user()->outlet_id;
             $search = DB::table('pesanans')
             ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
@@ -602,30 +603,45 @@ class DashboardController extends Controller
             ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
             ->where(function($query) use($request) {
                 $query;
-                $query->where('pelanggans.nama', 'like', '%' . $request->q . '%');
+                $query->where(DB::raw('lower(pelanggans.nama)'), 'like', '%' . str::lower($request->q) . '%');
+                $query->orwhere(DB::raw('lower(services.nama_layanan)'), 'like', '%' . str::lower($request->q) . '%');
                 $query->orwhere('pelanggans.whatsapp', 'like', '%' . $request->q . '%');
-                // $query->orwhere('services.nama_layanan', 'like', '%' . $request->q . '%');
-                // $query->orwhere('pesanans.kasir', 'like', '%' . $request->q . '%');
                 $query->orwhere('pesanans.nota_transaksi', 'like', '%' . $request->q . '%');
-                // $query->orwhere('waktus.nama', 'like', '%' . $request->q . '%');
-                // $query->orwhere('waktus.paket', 'like', '%' . $request->q . '%');
-                // $query->orwhere('pembayarans.diskon', 'like', '%' . $request->q . '%');
-                // $query->orwhere('outlets.nama_outlet', 'like', '%' . $request->q . '%');
             })
-            // ->where('pesanans.status', 'SELESAI')
             ->where('outlets.id', $user_outlet)
             ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
             ->get();
         }
         
-        if($request->search == 'operasional'){
+        if(Str::lower($request->search) == 'antrian'){
+            $user_outlet = Auth::user()->outlet_id;
+            $search = DB::table('pesanans')
+            ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+            ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+            ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+            ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+            ->where(function($query) use($request) {
+                $query;
+                $query->where(DB::raw('lower(pelanggans.nama)'), 'like', '%' . str::lower($request->q) . '%');
+                $query->orwhere(DB::raw('lower(services.nama_layanan)'), 'like', '%' . str::lower($request->q) . '%');
+                $query->orwhere('pelanggans.whatsapp', 'like', '%' . $request->q . '%');
+                $query->orwhere('pesanans.nota_transaksi', 'like', '%' . $request->q . '%');
+            })
+            ->where('outlets.id', $user_outlet)
+            ->where('pesanans.status', 'ANTRIAN')
+            ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
+            ->get();
+        }
+        
+        if(Str::lower($request->search) == 'operasional'){
             $user_outlet = Auth::user()->outlet_id;
             $search = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
             ->where(function($query) use($request) {
                 $query;
                 $query->where('operasionals.keterangan', 'like', '%' . $request->q . '%');
-                $query->where('operasionals.jenis', 'like', '%' . $request->jenis . '%');
+                $query->where(DB::raw('upper(operasionals.jenis)'), 'like', '%' . str::upper($request->jenis) . '%');
                 $query->orWhere('operasionals.nominal', 'like', '%' . $request->q . '%');
             })
             // ->where('pesanans.status', 'SELESAI')
