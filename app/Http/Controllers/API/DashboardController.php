@@ -524,29 +524,56 @@ class DashboardController extends Controller
         
         if($request->search == 'pesanan'){
             $user_outlet = Auth::user()->outlet_id;
-            $search = DB::table('pesanans')
-            ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
-            ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
-            ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
-            ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-            ->where(function($query) use($request) {
-                $query;
-                $query->where('pelanggans.nama', 'like', '%' . $request->q . '%');
-                $query->orwhere('pelanggans.whatsapp', 'like', '%' . $request->q . '%');
-                // $query->orwhere('services.nama_layanan', 'like', '%' . $request->q . '%');
-                // $query->orwhere('pesanans.kasir', 'like', '%' . $request->q . '%');
-                $query->orwhere('pesanans.nota_transaksi', 'like', '%' . $request->q . '%');
-                // $query->orwhere('waktus.nama', 'like', '%' . $request->q . '%');
-                // $query->orwhere('waktus.paket', 'like', '%' . $request->q . '%');
-                // $query->orwhere('pembayarans.diskon', 'like', '%' . $request->q . '%');
-                // $query->orwhere('outlets.nama_outlet', 'like', '%' . $request->q . '%');
-            })
-            // ->where('pesanans.status', 'SELESAI')
-            ->where('outlets.id', $user_outlet)
-            ->orWhere('outlets.parent', $user_outlet)
-            ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
-            ->get();
+            if($request->status){
+                $search = DB::table('pesanans')
+                ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+                ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+                ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+                ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                ->where(function($query) use($request) {
+                    $query;
+                    $query->where(DB::raw('lower(pelanggans.nama)'), 'like', '%' . str::lower($request->q) . '%');
+                    $query->orwhere(DB::raw('lower(services.nama_layanan)'), 'like', '%' . str::lower($request->q) . '%');
+                    $query->orwhere('pelanggans.whatsapp', 'like', '%' . $request->q . '%');
+                    // $query->orwhere('pesanans.kasir', 'like', '%' . $request->q . '%');
+                    $query->orwhere('pesanans.nota_transaksi', 'like', '%' . $request->q . '%');
+                    // $query->orwhere('waktus.nama', 'like', '%' . $request->q . '%');
+                    // $query->orwhere('waktus.paket', 'like', '%' . $request->q . '%');
+                    // $query->orwhere('pembayarans.diskon', 'like', '%' . $request->q . '%');
+                    // $query->orwhere('outlets.nama_outlet', 'like', '%' . $request->q . '%');
+                })
+                // ->where('pesanans.status', 'SELESAI')
+                ->where('pesanans.status', str::upper($request->status))
+                ->where('outlets.id', $user_outlet)
+                ->orWhere('outlets.parent', $user_outlet)
+                ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
+                ->get();
+            }else{
+                $search = DB::table('pesanans')
+                ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+                ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+                ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+                ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                ->where(function($query) use($request) {
+                    $query;
+                    $query->where(DB::raw('lower(pelanggans.nama)'), 'like', '%' . str::lower($request->q) . '%');
+                    $query->orwhere(DB::raw('lower(services.nama_layanan)'), 'like', '%' . str::lower($request->q) . '%');
+                    $query->orwhere('pelanggans.whatsapp', 'like', '%' . $request->q . '%');
+                    // $query->orwhere('pesanans.kasir', 'like', '%' . $request->q . '%');
+                    $query->orwhere('pesanans.nota_transaksi', 'like', '%' . $request->q . '%');
+                    // $query->orwhere('waktus.nama', 'like', '%' . $request->q . '%');
+                    // $query->orwhere('waktus.paket', 'like', '%' . $request->q . '%');
+                    // $query->orwhere('pembayarans.diskon', 'like', '%' . $request->q . '%');
+                    // $query->orwhere('outlets.nama_outlet', 'like', '%' . $request->q . '%');
+                })
+                // ->where('pesanans.status', 'SELESAI')
+                ->where('outlets.id', $user_outlet)
+                ->orWhere('outlets.parent', $user_outlet)
+                ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
+                ->get();
+            }
         }
         
         if($request->search == 'operasional'){
