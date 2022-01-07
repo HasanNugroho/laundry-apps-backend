@@ -466,7 +466,26 @@ class DashboardController extends Controller
         ->orWhere('outlets.parent', $user_outlet)
         ->select('operasionals.*', 'outlets.nama_outlet')
         ->get();
-        return $this->success('Success!', $operasional);
+        
+        $totalPendapatan = DB::table('operasionals')
+        ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        ->where('operasionals.jenis', 'PEMASUKAN')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
+        ->get();
+
+        $totalPengeluaran = DB::table('operasionals')
+        ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        ->where('operasionals.jenis', 'PENGELUARAN')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->select(DB::raw('sum(operasionals.nominal) as "pengeluaran"'))
+        ->get();
+
+        $omset = $totalPendapatan[0]->pendapatan - $totalPengeluaran[0]->pengeluaran;
+
+        return $this->success('Success!', ['total_pendapatan' => $totalPendapatan[0]->pendapatan ? $totalPendapatan[0]->pendapatan : 0, 'total_pengeluaran' => $totalPengeluaran[0]->pengeluaran ? $totalPengeluaran[0]->pengeluaran : 0, 'omset' => $omset, 'data' => $operasional]);
     }
     
     public function operasionalKaryawan()
@@ -477,9 +496,26 @@ class DashboardController extends Controller
         ->where('outlets.id', $user_outlet)
         ->select('operasionals.*', 'outlets.nama_outlet')
         ->get();
-        return $this->success('Success!', $operasional);
-    }
+        
+        $totalPendapatan = DB::table('operasionals')
+        ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        ->where('operasionals.jenis', 'PENDAPATAN')
+        ->where('outlets.id', $user_outlet)
+        ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
+        ->get();
+        
+        $totalPengeluaran = DB::table('operasionals')
+        ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        ->where('operasionals.jenis', 'PENGELUARAN')
+        ->where('outlets.id', $user_outlet)
+        ->select(DB::raw('sum(operasionals.nominal) as "pengeluaran"'))
+        ->get();
 
+        $omset = $totalPendapatan[0]->pendapatan - $totalPengeluaran[0]->pengeluaran;
+
+        return $this->success('Success!', ['total_pendapatan' => $totalPendapatan[0]->pendapatan ? $totalPendapatan[0]->pendapatan : 0, 'total_pengeluaran' => $totalPengeluaran[0]->pengeluaran ? $totalPengeluaran[0]->pengeluaran : 0, 'omset' => $omset, 'data' => $operasional]);
+    }
+    
     public function searchAdmin(Request $request)
     {
         $validator = Validator::make($request->all(),[
