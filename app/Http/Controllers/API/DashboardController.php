@@ -828,13 +828,13 @@ class DashboardController extends Controller
            from Date_Ranges
            where Date < CURRENT_DATE), 
            data_pemasukan AS (
-           SELECT sum(o.nominal) as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+           SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
            ),
            data_pengeluaran AS (
-           SELECT sum(o.nominal) as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+           SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
            )
            
-         SELECT dr.Date, (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) as data_pemasukan, (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) as data_pengeluaran FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
+           SELECT dr.Date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as data_pemasukan, (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end) as data_pengeluaran FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
         ');
 
         return $this->success('Success!', ["report" => $pendapatan, "harian" => $pendapatanharian]);
