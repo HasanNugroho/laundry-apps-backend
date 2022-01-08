@@ -828,10 +828,10 @@ class DashboardController extends Controller
            from Date_Ranges
            where Date < CURRENT_DATE), 
            data_pemasukan AS (
-           SELECT sum(o.nominal) as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' and ou.id = \'798e0e03-1e3b-460c-bde1-f0b2f3f12f9b\' or ou.parent = \'798e0e03-1e3b-460c-bde1-f0b2f3f12f9b\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+           SELECT sum(o.nominal) as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
            ),
            data_pengeluaran AS (
-           SELECT sum(o.nominal) as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' and ou.id = \'798e0e03-1e3b-460c-bde1-f0b2f3f12f9b\' or ou.parent = \'798e0e03-1e3b-460c-bde1-f0b2f3f12f9b\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+           SELECT sum(o.nominal) as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
            )
            
          SELECT dr.Date, (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) as data_pemasukan, (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) as data_pengeluaran FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
