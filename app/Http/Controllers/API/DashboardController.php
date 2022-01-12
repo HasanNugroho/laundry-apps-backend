@@ -191,26 +191,57 @@ class DashboardController extends Controller
         return $this->success('Success!', ['omsetHarian' => $pendapatan, 'totalPemasukan' => $totalpemasukan]);
     }
 
-    public function pengeluaranOwner()
+    public function pengeluaranOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
 
-        $pengeluaran = DB::table('operasionals')
-            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-            ->where('operasionals.created_at', '>=', Carbon::now()->subMonth())
-            ->where('operasionals.jenis', 'PENGELUARAN')
-            ->where('outlets.id', $user_outlet)
-            ->orWhere('outlets.parent', $user_outlet)
-            ->groupBy('date', 'outletid')
-            ->orderBy('date', 'DESC')
-            ->get(array(
-                DB::raw('Date(operasionals.created_at) as date'),
-                DB::raw('sum(operasionals.nominal) as "omset"'),
-                // DB::raw('operasionals.outletid as outletid'),
-            ));
+        // $pengeluaran = DB::table('operasionals')
+        //     ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //     ->where('operasionals.created_at', '>=', Carbon::now()->subMonth())
+        //     ->where('operasionals.jenis', 'PENGELUARAN')
+        //     ->where('outlets.id', $user_outlet)
+        //     ->orWhere('outlets.parent', $user_outlet)
+        //     ->groupBy('date', 'outletid')
+        //     ->orderBy('date', 'DESC')
+        //     ->get(array(
+        //         DB::raw('Date(operasionals.created_at) as date'),
+        //         DB::raw('sum(operasionals.nominal) as "omset"'),
+        //         // DB::raw('operasionals.outletid as outletid'),
+        //     ));
+
+        if($request->from || $request->to){
+            $pendapatan = DB::select('
+            with recursive Date_Ranges AS (
+                select \''. $request->from . '\' as Date
+                union all
+                select Date + interval 1 day
+                from Date_Ranges
+                where Date < \''. $request->to . '\'), 
+                data_pengeluaran AS (
+                SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+                )
+                
+                SELECT dr.Date as date, (case when (SELECT dps.data_pengeluaran from data_pengeluaran dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pengeluaran from data_pengeluaran dps where dps.date = dr.Date) end) as pengeluaran FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date desc
+            ');
+        }else{
+            $pendapatan = DB::select('
+            with recursive Date_Ranges AS (
+                select CURRENT_DATE - INTERVAL 30 day as Date
+                union all
+                select Date + interval 1 day
+                from Date_Ranges
+                where Date < CURRENT_DATE), 
+                data_pengeluaran AS (
+                SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+                )
+                
+                SELECT dr.Date as date, (case when (SELECT dps.data_pengeluaran from data_pengeluaran dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pengeluaran from data_pengeluaran dps where dps.date = dr.Date) end) as pengeluaran FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date desc
+            ');
+        }
         
         $totalpengeluaran = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
             ->where('operasionals.jenis', 'PENGELUARAN')
             ->where('outlets.id', $user_outlet)
             ->orWhere('outlets.parent', $user_outlet)
@@ -461,7 +492,7 @@ class DashboardController extends Controller
         }
     }
 
-    public function countTransaksiOwner()
+    public function countTransaksiOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
         $transaksi = DB::select('SELECT 
@@ -469,7 +500,7 @@ class DashboardController extends Controller
         COUNT(IF(upper(ps.status) = "SELESAI", 1, NULL)) "selesai",
         COUNT(IF(upper(ps.status) = "PACKING", 1, NULL)) "packing",
         COUNT(IF(upper(ps.status) = "PROSES", 1, NULL)) "proses",
-        COUNT(IF(upper(ps.status) = "ANTERIAN", 1, NULL)) "antrian"
+        COUNT(IF(upper(ps.status) = "ANTRIAN", 1, NULL)) "antrian"
         FROM
             pesanans ps
         LEFT JOIN
@@ -477,7 +508,7 @@ class DashboardController extends Controller
         ON 
             ps.outletid = o.id
         WHERE 
-            o.parent = ? or o.id = ?', [$user_outlet, $user_outlet]);
+            o.parent = ? or o.id = ? and DATE(ps.created_at) BETWEEN ? AND ? ' , [$user_outlet, $user_outlet, $request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()]);
 
         return $this->success('Success!', $transaksi);
     }
@@ -487,9 +518,11 @@ class DashboardController extends Controller
         $user_outlet = Auth::user()->outlet_id;
         $users = DB::table('users')
         ->leftJoin('outlets', 'users.outlet_id', '=', 'outlets.id')
+        ->whereBetween('users.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
         ->where('outlets.id', $user_outlet)
         ->orWhere('outlets.parent', $user_outlet)
         ->select('users.uid','users.username', 'users.email', 'users.role', 'users.alamat', 'users.whatsapp', 'users.status', 'users.created_at as date_join', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.alamat')
+        ->orderBy('created_at', 'DESC')
         ->get();
 
         return $this->success('Success!', $users);
@@ -802,6 +835,7 @@ class DashboardController extends Controller
                     $query->orWhere('outlets.parent', $user_outlet);
                 })
                 ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
+                ->orderBy('created_at', 'DESC')
                 ->get();
         }else{
             $pesanan = DB::table('pesanans')
@@ -814,6 +848,7 @@ class DashboardController extends Controller
                 ->where('outlets.id', $user_outlet)
                 ->orWhere('outlets.parent', $user_outlet)
                 ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
+                ->orderBy('created_at', 'DESC')
                 ->get();
 
         }
