@@ -516,14 +516,24 @@ class DashboardController extends Controller
     public function daftarKasirOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
-        $users = DB::table('users')
-        ->leftJoin('outlets', 'users.outlet_id', '=', 'outlets.id')
-        ->whereBetween('users.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-        ->where('outlets.id', $user_outlet)
-        ->orWhere('outlets.parent', $user_outlet)
-        ->select('users.uid','users.username', 'users.email', 'users.role', 'users.alamat', 'users.whatsapp', 'users.status', 'users.created_at as date_join', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.alamat')
-        ->orderBy('users.created_at', 'DESC')
-        ->get();
+        if ($request->from || $request->to){
+            $users = DB::table('users')
+            ->leftJoin('outlets', 'users.outlet_id', '=', 'outlets.id')
+            ->whereBetween('users.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+            ->where('outlets.id', $user_outlet)
+            ->orWhere('outlets.parent', $user_outlet)
+            ->select('users.uid','users.username', 'users.email', 'users.role', 'users.alamat', 'users.whatsapp', 'users.status', 'users.created_at as date_join', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.alamat')
+            ->orderBy('users.created_at', 'DESC')
+            ->get();
+        }else{
+            $users = DB::table('users')
+            ->leftJoin('outlets', 'users.outlet_id', '=', 'outlets.id')
+            ->where('outlets.id', $user_outlet)
+            ->orWhere('outlets.parent', $user_outlet)
+            ->select('users.uid','users.username', 'users.email', 'users.role', 'users.alamat', 'users.whatsapp', 'users.status', 'users.created_at as date_join', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.alamat')
+            ->orderBy('users.created_at', 'DESC')
+            ->get();
+        }
 
         return $this->success('Success!', $users);
     }
