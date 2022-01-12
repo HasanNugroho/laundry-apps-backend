@@ -86,7 +86,7 @@ class DashboardController extends Controller
         return $this->success('Success!', $utang);
     }
 
-    public function pendapatanOwner()
+    public function pendapatanOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
         // DB::enableQueryLog(); // Enable query log
@@ -104,25 +104,41 @@ class DashboardController extends Controller
         //         DB::raw('sum(operasionals.nominal) as "omset"'),
         //         // DB::raw('operasionals.outletid as outletid')
         //     ));
-
-        $pendapatan = DB::select('
-        with recursive Date_Ranges AS (
-            select CURRENT_DATE - INTERVAL 30 day as Date
-            union all
-            select Date + interval 1 day
-            from Date_Ranges
-            where Date < CURRENT_DATE), 
-            data_pemasukan AS (
-            SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
-            )
-            
-            SELECT dr.Date as date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as omset FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date desc
-        ');
+        if($request->from || $request->to){
+            $pendapatan = DB::select('
+            with recursive Date_Ranges AS (
+                select \''. $request->from . '\' as Date
+                union all
+                select Date + interval 1 day
+                from Date_Ranges
+                where Date < \''. $request->to . '\'), 
+                data_pemasukan AS (
+                SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+                )
+                
+                SELECT dr.Date as date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as omset FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date desc
+            ');
+        }else{
+            $pendapatan = DB::select('
+            with recursive Date_Ranges AS (
+                select CURRENT_DATE - INTERVAL 30 day as Date
+                union all
+                select Date + interval 1 day
+                from Date_Ranges
+                where Date < CURRENT_DATE), 
+                data_pemasukan AS (
+                SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+                )
+                
+                SELECT dr.Date as date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as omset FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date desc
+            ');
+        }
         
         // dd(DB::getQueryLog()); // Show results of log
 
         $totalpendapatan = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
             ->where('operasionals.jenis', 'PEMASUKAN')
             ->where('outlets.id', $user_outlet)
             ->orWhere('outlets.parent', $user_outlet)
@@ -130,6 +146,7 @@ class DashboardController extends Controller
         
         $totalpengeluaran = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
             ->where('operasionals.jenis', 'PENGELUARAN')
             ->where('outlets.id', $user_outlet)
             ->orWhere('outlets.parent', $user_outlet)
