@@ -386,4 +386,30 @@ class PesananController extends Controller
         ->get();
         return $this->success('Success!', $operasional);
     }
+
+    public function tracking(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            'nota' => 'required|string'
+        ]);
+        
+        if($validator->fails()){
+            return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
+        }
+        $pesanan = DB::table('pesanans')
+            ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+            ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+            ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+            ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+            ->where('pesanans.nota_transaksi', $request->nota)
+            ->select('pesanans.nota_transaksi', 'pesanans.deadline', 'pesanans.jumlah', 'pesanans.status as status_pesanan', 'pelanggans.nama', 'outlets.nama_outlet', 'services.nama_layanan', 'pembayarans.status as statusPembayaran', 'pembayarans.diskon', 'pembayarans.tagihan', 'waktus.paket', 'waktus.jenis')
+            ->get();
+        
+        if($pesanan){
+            return $this->success('Success!', $pesanan);
+        }else{
+            return $this->error('Failed!', [ 'message' => 'data not exist'], 404);
+        }
+    }
 }
