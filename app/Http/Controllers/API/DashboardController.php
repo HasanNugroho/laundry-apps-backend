@@ -513,7 +513,7 @@ class DashboardController extends Controller
         return $this->success('Success!', $transaksi);
     }
 
-    public function daftarKasirOwner()
+    public function daftarKasirOwner(Requset $request)
     {
         $user_outlet = Auth::user()->outlet_id;
         $users = DB::table('users')
