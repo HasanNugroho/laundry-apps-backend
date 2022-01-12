@@ -33,12 +33,12 @@ Route::post('/forget-password', [AuthController::class, 'forgetPassword'])->name
     Route::put('/forgetpass', [AuthController::class, 'updatePassword'])->name('forgetpass')->middleware('signed');
 // });
 
-Route::group(['middleware' => ['auth:sanctum']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
 //Dashboard
-Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors', 'owner']], function () {
     Route::get('/dashboard/pelanggan', [DashboardController::class, 'countpelangganOwner']);
     Route::get('/dashboard/utang', [DashboardController::class, 'nominalutangOwner']);
     Route::get('/dashboard/omset', [DashboardController::class, 'pendapatanOwner']);
@@ -56,7 +56,7 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('/dashboard/totalpendapatan', [DashboardController::class, 'totalPemasukanAdmin']);
 });
 
-Route::group(['middleware' => ['auth:sanctum']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
     Route::get('/dashboard/kroperasional', [DashboardController::class, 'operasionalKaryawan']);
     Route::get('/dashboard/krutang', [DashboardController::class, 'nominalutangKasir']);
     Route::get('/dashboard/kromset', [DashboardController::class, 'pendapatanKasir']);
@@ -69,12 +69,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 //pelanggan
-Route::group(['middleware' => ['auth:sanctum','owner']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors','owner']], function () {
     Route::get('/adpelanggan', [PelangganController::class, 'showadmin']);
 });
 
 //pelanggan
-Route::group(['middleware' => ['auth:sanctum']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
     Route::post('/pelanggan', [PelangganController::class, 'create']);
     Route::get('/pelanggan', [PelangganController::class, 'show']);
     Route::get('/pelanggan/{id}', [PelangganController::class, 'showbyid']);
@@ -83,14 +83,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 //operasional
-Route::group(['middleware' => ['auth:sanctum']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
     Route::post('/pengeluaran', [DashboardController::class, 'pengeluaran']);
     // Route::post('/pemasukan', [DashboardController::class, 'pemasukan']);
     Route::get('/operasional', [PesananController::class, 'operasional']);
 });
 
 // pesanan
-Route::group(['middleware' => ['auth:sanctum']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
     Route::post('/pesanan', [PesananController::class, 'create']);
     Route::get('/pesanan/{status}', [PesananController::class, 'getPesanan']);
     Route::get('/pesanan/detail/{nota}', [PesananController::class, 'getPesanandetail']);
@@ -99,7 +99,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 //outlet
-Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors', 'owner']], function () {
     Route::get('/outlet', [OutletController::class, 'show']);
     Route::get('/outlet/{id}', [OutletController::class, 'showbyid']);
     Route::post('/outlet', [OutletController::class, 'create']);
@@ -109,19 +109,19 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::post('/outlet/invite', [OutletController::class, 'invite']);
 });
 
-Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors', 'owner']], function () {
     Route::get('/users/{id}', [UserController::class, 'showdetil']);
     Route::put('/users/{id}', [UserController::class, 'updaterole']);
 });
 
 // Waktu
-Route::group(['middleware' => ['auth:sanctum']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
     Route::get('/waktu', [WaktuController::class, 'show']);
     Route::get('/waktu/{id}', [WaktuController::class, 'showById']);
 });
 
 //admin
-Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors', 'admin']], function () {
     Route::get('/adwaktu', [WaktuController::class, 'showadmin']);
     Route::post('/waktu', [WaktuController::class, 'create']);
     Route::put('/waktu/{id}', [WaktuController::class, 'update']);
@@ -129,7 +129,7 @@ Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
 });
 
 //service
-Route::group(['middleware' => ['auth:sanctum']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
     Route::get('/service', [ServiceController::class, 'show']);
     Route::get('/service/{id}', [ServiceController::class, 'showById']);
 });
@@ -142,7 +142,7 @@ Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::delete('/service/{id}', [ServiceController::class, 'delete']);
 });
 
-Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors', 'owner']], function () {
     Route::post('/provinsi', [AssetController::class, 'provinsi']);
     Route::post('/kabupaten', [AssetController::class, 'kabupaten']);
     Route::post('/kecamatan', [AssetController::class, 'kecamatan']);
@@ -154,7 +154,7 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
 });
 
 //status
-Route::group(['middleware' => ['auth:sanctum']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
     Route::get('/status/pesanan', [AssetController::class, 'status_pesanan']);
     Route::get('/status/pembayaran', [AssetController::class, 'status_pembayaran']);
 });

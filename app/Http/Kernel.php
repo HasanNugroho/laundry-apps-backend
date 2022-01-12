@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
         'owner' => \App\Http\Middleware\Owner::class,
         'admin' => \App\Http\Middleware\Admin::class,
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
+        'cors' => \App\Http\Middleware\Cors::class, 
     ];
 }
