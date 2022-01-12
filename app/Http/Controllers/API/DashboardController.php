@@ -621,6 +621,7 @@ class DashboardController extends Controller
                     // $query->orwhere('outlets.nama_outlet', 'like', '%' . $request->q . '%');
                 })
                 // ->where('pesanans.status', 'SELESAI')
+                ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
                 ->where('pesanans.status', str::upper($request->status))
                 ->where('outlets.id', $user_outlet)
                 ->orWhere('outlets.parent', $user_outlet)
@@ -646,6 +647,7 @@ class DashboardController extends Controller
                     // $query->orwhere('outlets.nama_outlet', 'like', '%' . $request->q . '%');
                 })
                 // ->where('pesanans.status', 'SELESAI')
+                ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
                 ->where('outlets.id', $user_outlet)
                 ->orWhere('outlets.parent', $user_outlet)
                 ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
@@ -663,6 +665,7 @@ class DashboardController extends Controller
                 $query->where('operasionals.jenis', 'like', '%' . $request->jenis . '%');
                 $query->orWhere('operasionals.nominal', 'like', '%' . $request->q . '%');
             })
+            ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
             // ->where('pesanans.status', 'SELESAI')
             ->where('outlets.id', $user_outlet)
             ->orWhere('outlets.parent', $user_outlet)
