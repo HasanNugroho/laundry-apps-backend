@@ -60,10 +60,11 @@ class DashboardController extends Controller
         return $this->success('Success!', ['curentMouth' => $currentmouth, 'lastMouth' => $lastmouth, 'total' => $all]);
     }
 
-    public function nominalutangOwner()
+    public function nominalutangOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
         $utang = DB::table('pembayarans')->where(DB::raw('upper(pembayarans.status)'), 'UTANG')
+        ->whereBetween('pembayarans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
         ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
         ->where('outlets.id', $user_outlet)
@@ -215,59 +216,60 @@ class DashboardController extends Controller
         return $this->success('Success!', ['pengeluaranHarian' => $pengeluaran, 'totalPengeluaran' => $totalpengeluaran[0]->pengeluaran]);
     }
 
-    public function transaksiOwner()
+    public function transaksiOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
-        $today = DB::table('pesanans')
-        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-        ->whereDate('pesanans.updated_at',Carbon::today())
-        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
-        ->where('outlets.id', $user_outlet)
-        ->orWhere('outlets.parent', $user_outlet)
-        ->count();
+        // $today = DB::table('pesanans')
+        // ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        // ->whereDate('pesanans.updated_at',Carbon::today())
+        // ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        // ->where('outlets.id', $user_outlet)
+        // ->orWhere('outlets.parent', $user_outlet)
+        // ->count();
 
-        $yesterday = DB::table('pesanans')
-        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-        ->whereDate('pesanans.updated_at', Carbon::yesterday())
-        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
-        ->where('outlets.id', $user_outlet)
-        ->orWhere('outlets.parent', $user_outlet)
-        ->count();
+        // $yesterday = DB::table('pesanans')
+        // ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        // ->whereDate('pesanans.updated_at', Carbon::yesterday())
+        // ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        // ->where('outlets.id', $user_outlet)
+        // ->orWhere('outlets.parent', $user_outlet)
+        // ->count();
         
-        $current_week = DB::table('pesanans')
-        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-        ->whereBetween('pesanans.updated_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
-        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
-        ->where('outlets.id', $user_outlet)
-        ->orWhere('outlets.parent', $user_outlet)
-        ->count();
+        // $current_week = DB::table('pesanans')
+        // ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        // ->whereBetween('pesanans.updated_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+        // ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        // ->where('outlets.id', $user_outlet)
+        // ->orWhere('outlets.parent', $user_outlet)
+        // ->count();
 
-        $thismouth = DB::table('pesanans')
-        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-        ->whereMonth('pesanans.updated_at', Carbon::now()->format('m'))
-        ->whereYear('pesanans.updated_at', date('Y'))
-        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
-        ->where('outlets.id', $user_outlet)
-        ->orWhere('outlets.parent', $user_outlet)
-        ->count();
+        // $thismouth = DB::table('pesanans')
+        // ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        // ->whereMonth('pesanans.updated_at', Carbon::now()->format('m'))
+        // ->whereYear('pesanans.updated_at', date('Y'))
+        // ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        // ->where('outlets.id', $user_outlet)
+        // ->orWhere('outlets.parent', $user_outlet)
+        // ->count();
 
-        $lastmouth = DB::table('pesanans')
-        ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-        ->whereMonth('pesanans.updated_at', Carbon::now()->subMonth()->format('m'))
-        ->whereYear('pesanans.updated_at', date('Y'))
-        ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
-        ->where('outlets.id', $user_outlet)
-        ->orWhere('outlets.parent', $user_outlet)
-        ->count();
+        // $lastmouth = DB::table('pesanans')
+        // ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        // ->whereMonth('pesanans.updated_at', Carbon::now()->subMonth()->format('m'))
+        // ->whereYear('pesanans.updated_at', date('Y'))
+        // ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
+        // ->where('outlets.id', $user_outlet)
+        // ->orWhere('outlets.parent', $user_outlet)
+        // ->count();
 
         $all = DB::table('pesanans')
         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
         ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
         ->where('outlets.id', $user_outlet)
         ->orWhere('outlets.parent', $user_outlet)
         ->count();
 
-        return $this->success('Success!', ['today' => $today, 'yesterday' => $yesterday, 'current_week' => $current_week, 'thismouth' => $thismouth, 'lastmouth' => $lastmouth, 'total' => $all]);
+        return $this->success('Success!', ['total' => $all]);
     }
     
     public function transaksiKasir()
@@ -319,11 +321,12 @@ class DashboardController extends Controller
         return $this->success('Success!', ['today' => $today, 'yesterday' => $yesterday, 'current_week' => $current_week, 'thismouth' => $thismouth, 'lastmouth' => $lastmouth, 'total' => $all]);
     }
 
-    public function countTransaksiAdmin()
+    public function countTransaksiAdmin(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
         $selesai = DB::table('pesanans')
         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
         ->where(DB::raw('upper(pesanans.status)'), 'SELESAI')
         ->where('outlets.id', $user_outlet)
         ->orWhere('outlets.parent', $user_outlet)
@@ -331,6 +334,7 @@ class DashboardController extends Controller
 
         $proses = DB::table('pesanans')
         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
         ->where(DB::raw('upper(pesanans.status)'), 'PROSES')
         ->where('outlets.id', $user_outlet)
         ->orWhere('outlets.parent', $user_outlet)
@@ -338,6 +342,7 @@ class DashboardController extends Controller
         
         $antrian = DB::table('pesanans')
         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
         ->where(DB::raw('upper(pesanans.status)'), 'ANTRIAN')
         ->where('outlets.id', $user_outlet)
         ->orWhere('outlets.parent', $user_outlet)
@@ -345,6 +350,7 @@ class DashboardController extends Controller
 
         $dibatalkan = DB::table('pesanans')
         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
         ->where(DB::raw('upper(pesanans.status)'), 'DIBATALKAN')
         ->where('outlets.id', $user_outlet)
         ->orWhere('outlets.parent', $user_outlet)
@@ -352,6 +358,7 @@ class DashboardController extends Controller
 
         $all = DB::table('pesanans')
         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
         ->where('outlets.id', $user_outlet)
         ->orWhere('outlets.parent', $user_outlet)
         ->count();
@@ -457,11 +464,12 @@ class DashboardController extends Controller
         return $this->success('Success!', $users);
     }
     
-    public function operasionalOwner()
+    public function operasionalOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
         $operasional = DB::table('operasionals')
         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
         ->where('outlets.id', $user_outlet)
         ->orWhere('outlets.parent', $user_outlet)
         ->select('operasionals.*', 'outlets.nama_outlet')
@@ -469,6 +477,7 @@ class DashboardController extends Controller
         
         $totalPendapatan = DB::table('operasionals')
         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
         ->where('operasionals.jenis', 'PEMASUKAN')
         ->where('outlets.id', $user_outlet)
         ->orWhere('outlets.parent', $user_outlet)
@@ -477,6 +486,7 @@ class DashboardController extends Controller
 
         $totalPengeluaran = DB::table('operasionals')
         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
         ->where('operasionals.jenis', 'PENGELUARAN')
         ->where('outlets.id', $user_outlet)
         ->orWhere('outlets.parent', $user_outlet)
@@ -748,6 +758,7 @@ class DashboardController extends Controller
                 ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
                 ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
                 ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
                 ->where(DB::raw('upper(pesanans.status)'), Str::upper($request->status))
                 ->where(function($query) use($user_outlet) {
                     $query;
@@ -763,6 +774,7 @@ class DashboardController extends Controller
                 ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
                 ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
                 ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
                 ->where('outlets.id', $user_outlet)
                 ->orWhere('outlets.parent', $user_outlet)
                 ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
@@ -786,6 +798,7 @@ class DashboardController extends Controller
         $kiloan = DB::table('pesanans')
             ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
             ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+            ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
             ->where('services.jenis', 'kiloan')
             ->where('outlets.id', $user_outlet)
             ->orWhere('outlets.parent', $user_outlet)
@@ -840,12 +853,13 @@ class DashboardController extends Controller
         return $this->success('Success!', ["report" => $pendapatan, "harian" => $pendapatanharian]);
     }
     
-    public function totalPemasukanAdmin()
+    public function totalPemasukanAdmin(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
 
         $totalpendapatan = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
             ->where('operasionals.jenis', 'PEMASUKAN')
             ->where('outlets.id', $user_outlet)
             ->orWhere('outlets.parent', $user_outlet)
@@ -853,6 +867,7 @@ class DashboardController extends Controller
         
         $totalpengeluaran = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->startOfDay()->toDateString()])
             ->where('operasionals.jenis', 'PENGELUARAN')
             ->where('outlets.id', $user_outlet)
             ->orWhere('outlets.parent', $user_outlet)

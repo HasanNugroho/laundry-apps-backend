@@ -40,20 +40,20 @@ Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
 //Dashboard
 Route::group(['middleware' => ['auth:sanctum', 'cors', 'owner']], function () {
     Route::get('/dashboard/pelanggan', [DashboardController::class, 'countpelangganOwner']);
-    Route::get('/dashboard/utang', [DashboardController::class, 'nominalutangOwner']);
+    Route::get('/dashboard/utang', [DashboardController::class, 'nominalutangOwner']);//v
     Route::get('/dashboard/omset', [DashboardController::class, 'pendapatanOwner']);
     Route::get('/dashboard/pengeluaran', [DashboardController::class, 'pengeluaranOwner']);
-    Route::get('/dashboard/transaksi', [DashboardController::class, 'transaksiOwner']);
+    Route::get('/dashboard/transaksi', [DashboardController::class, 'transaksiOwner']);//v
     Route::get('/dashboard/jumlahtransaksi', [DashboardController::class, 'countTransaksiOwner']);
     Route::get('/dashboard/karyawan', [DashboardController::class, 'daftarKasirOwner']);
     Route::get('/adriwayat', [PesananController::class, 'riwayatAdmin']);
     Route::get('/dashboard/adsearch', [DashboardController::class, 'searchAdmin']);
-    Route::get('/dashboard/operasional', [DashboardController::class, 'operasionalOwner']);
-    Route::get('/dashboard/counttransaksi', [DashboardController::class, 'countTransaksiAdmin']);
-    Route::get('/dashboard/pesanan', [DashboardController::class, 'getPesananAdmin']);
-    Route::get('/dashboard/report', [DashboardController::class, 'report']);
+    Route::get('/dashboard/operasional', [DashboardController::class, 'operasionalOwner']);//v
+    Route::get('/dashboard/counttransaksi', [DashboardController::class, 'countTransaksiAdmin']);//v
+    Route::get('/dashboard/pesanan', [DashboardController::class, 'getPesananAdmin']);//v
+    Route::get('/dashboard/report', [DashboardController::class, 'report']);//v
     Route::get('/dashboard/reportoperasional', [DashboardController::class, 'reportOperasional']);
-    Route::get('/dashboard/totalpendapatan', [DashboardController::class, 'totalPemasukanAdmin']);
+    Route::get('/dashboard/totalpendapatan', [DashboardController::class, 'totalPemasukanAdmin']);//v
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
