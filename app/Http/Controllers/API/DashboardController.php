@@ -522,7 +522,7 @@ class DashboardController extends Controller
         ->where('outlets.id', $user_outlet)
         ->orWhere('outlets.parent', $user_outlet)
         ->select('users.uid','users.username', 'users.email', 'users.role', 'users.alamat', 'users.whatsapp', 'users.status', 'users.created_at as date_join', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.alamat')
-        ->orderBy('created_at', 'DESC')
+        ->orderBy('users.created_at', 'DESC')
         ->get();
 
         return $this->success('Success!', $users);
