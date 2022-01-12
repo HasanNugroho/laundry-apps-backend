@@ -107,16 +107,16 @@ class DashboardController extends Controller
 
         $pendapatan = DB::select('
         with recursive Date_Ranges AS (
-            select CURRENT_DATE - INTERVAL 90 day as Date
-           union all
-           select Date + interval 1 day
-           from Date_Ranges
-           where Date < CURRENT_DATE), 
-           data_pemasukan AS (
-           SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
-           )
-           
-           SELECT dr.Date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as data_pemasukan FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
+            select CURRENT_DATE - INTERVAL 30 day as Date
+            union all
+            select Date + interval 1 day
+            from Date_Ranges
+            where Date < CURRENT_DATE), 
+            data_pemasukan AS (
+            SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+            )
+            
+            SELECT dr.Date as date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as omset FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date desc
         ');
         
         // dd(DB::getQueryLog()); // Show results of log
