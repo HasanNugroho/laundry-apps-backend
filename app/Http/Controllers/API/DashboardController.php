@@ -104,7 +104,7 @@ class DashboardController extends Controller
                 // DB::raw('operasionals.outletid as outletid')
             ));
         
-        dd(DB::getQueryLog()); // Show results of log
+        // dd(DB::getQueryLog()); // Show results of log
 
         $totalpendapatan = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
