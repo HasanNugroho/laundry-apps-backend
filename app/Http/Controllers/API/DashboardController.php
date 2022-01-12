@@ -615,6 +615,7 @@ class DashboardController extends Controller
                     $query->orwhere('pelanggans.whatsapp', 'like', '%' . $request->q . '%');
                     // $query->orwhere('pesanans.kasir', 'like', '%' . $request->q . '%');
                     $query->orwhere('pesanans.nota_transaksi', 'like', '%' . $request->q . '%');
+                    $query->orwhere('pesanans.created_at', 'like', '%' . $request->q . '%');
                     // $query->orwhere('waktus.nama', 'like', '%' . $request->q . '%');
                     // $query->orwhere('waktus.paket', 'like', '%' . $request->q . '%');
                     // $query->orwhere('pembayarans.diskon', 'like', '%' . $request->q . '%');
@@ -641,6 +642,7 @@ class DashboardController extends Controller
                     $query->orwhere('pelanggans.whatsapp', 'like', '%' . $request->q . '%');
                     // $query->orwhere('pesanans.kasir', 'like', '%' . $request->q . '%');
                     $query->orwhere('pesanans.nota_transaksi', 'like', '%' . $request->q . '%');
+                    $query->orwhere('pesanans.created_at', 'like', '%' . $request->q . '%');
                     // $query->orwhere('waktus.nama', 'like', '%' . $request->q . '%');
                     // $query->orwhere('waktus.paket', 'like', '%' . $request->q . '%');
                     // $query->orwhere('pembayarans.diskon', 'like', '%' . $request->q . '%');
