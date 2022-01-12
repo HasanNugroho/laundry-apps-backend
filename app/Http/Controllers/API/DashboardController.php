@@ -821,35 +821,68 @@ class DashboardController extends Controller
 
         $user_outlet = Auth::user()->outlet_id;
         if($request->status){
-            $pesanan = DB::table('pesanans')
-                ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
-                ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-                ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
-                ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
-                ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-                ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-                ->where(DB::raw('upper(pesanans.status)'), Str::upper($request->status))
-                ->where(function($query) use($user_outlet) {
-                    $query;
-                    $query->where('outlets.id', $user_outlet);
-                    $query->orWhere('outlets.parent', $user_outlet);
-                })
-                ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
-                ->orderBy('created_at', 'DESC')
-                ->get();
+            if($request->from || $request->from){
+                $pesanan = DB::table('pesanans')
+                    ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+                    ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                    ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+                    ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+                    ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                    ->where(DB::raw('upper(pesanans.status)'), Str::upper($request->status))
+                    ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(90)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+                    ->where(function($query) use($user_outlet) {
+                        $query;
+                        $query->where('outlets.id', $user_outlet);
+                        $query->orWhere('outlets.parent', $user_outlet);
+                    })
+                    ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
+                    ->orderBy('created_at', 'DESC')
+                    ->get();
+            }else{
+                $pesanan = DB::table('pesanans')
+                    ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+                    ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                    ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+                    ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+                    ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                    ->where(DB::raw('upper(pesanans.status)'), Str::upper($request->status))
+                    ->where(function($query) use($user_outlet) {
+                        $query;
+                        $query->where('outlets.id', $user_outlet);
+                        $query->orWhere('outlets.parent', $user_outlet);
+                    })
+                    ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
+                    ->orderBy('created_at', 'DESC')
+                    ->get();
+            }
         }else{
-            $pesanan = DB::table('pesanans')
-                ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
-                ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-                ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
-                ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
-                ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-                ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-                ->where('outlets.id', $user_outlet)
-                ->orWhere('outlets.parent', $user_outlet)
-                ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
-                ->orderBy('created_at', 'DESC')
-                ->get();
+            if ($request->from || $reqsuest->to) {
+                $pesanan = DB::table('pesanans')
+                    ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+                    ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                    ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+                    ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+                    ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                    ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+                    ->where('outlets.id', $user_outlet)
+                    ->orWhere('outlets.parent', $user_outlet)
+                    ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
+                    ->orderBy('created_at', 'DESC')
+                    ->get();
+            }else{
+                $pesanan = DB::table('pesanans')
+                    ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
+                    ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                    ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+                    ->leftJoin('waktus', 'pesanans.idwaktu', '=', 'waktus.id')
+                    ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                    ->where('outlets.id', $user_outlet)
+                    ->orWhere('outlets.parent', $user_outlet)
+                    ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
+                    ->orderBy('created_at', 'DESC')
+                    ->get();
+
+            }
 
         }
         // dd(DB::getQueryLog()); // Show results of log
