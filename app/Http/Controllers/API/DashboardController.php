@@ -831,7 +831,7 @@ class DashboardController extends Controller
 
         $user_outlet = Auth::user()->outlet_id;
         if($request->status){
-            if($request->from || $request->from){
+            if($request->from || $request->to){
                 $pesanan = DB::table('pesanans')
                     ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
                     ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
