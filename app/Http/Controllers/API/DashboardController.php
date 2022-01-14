@@ -936,35 +936,43 @@ class DashboardController extends Controller
     public function reportOperasional(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
-        $from = $request->from;
-        $to = $request->to;
+        if($request->from || $request->to){
+            $pendapatanharian = DB::select('
+                with recursive Date_Ranges AS (
+                select \''. $request->from . '\' as Date
+                union all
+                select Date + interval 1 day
+                from Date_Ranges
+                where Date < \''. $request->to . '\'), 
+                data_pemasukan AS (
+                SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+                ),
+                data_pengeluaran AS (
+                SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+                )
+               
+                SELECT dr.Date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as data_pemasukan, (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end) as data_pengeluaran FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
+            ');
+        }else{
+            $pendapatanharian = DB::select('
+            with recursive Date_Ranges AS (
+                select CURRENT_DATE - INTERVAL 30 day as Date
+               union all
+               select Date + interval 1 day
+               from Date_Ranges
+               where Date < CURRENT_DATE), 
+               data_pemasukan AS (
+               SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+               ),
+               data_pengeluaran AS (
+               SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+               )
+               
+               SELECT dr.Date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as data_pemasukan, (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end) as data_pengeluaran FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
+            ');
+        }
 
-        $pendapatan = DB::table('operasionals')
-            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-            ->whereBetween('operasionals.created_at', [$from, $to])
-            // ->where('operasionals.jenis', 'PEMASUKAN')
-            ->where('outlets.id', $user_outlet)
-            ->orWhere('outlets.parent', $user_outlet)
-            ->get();
-
-        $pendapatanharian = DB::select('
-        with recursive Date_Ranges AS (
-            select CURRENT_DATE - INTERVAL 30 day as Date
-           union all
-           select Date + interval 1 day
-           from Date_Ranges
-           where Date < CURRENT_DATE), 
-           data_pemasukan AS (
-           SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
-           ),
-           data_pengeluaran AS (
-           SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
-           )
-           
-           SELECT dr.Date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as data_pemasukan, (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end) as data_pengeluaran FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
-        ');
-
-        return $this->success('Success!', ["report" => $pendapatan, "harian" => $pendapatanharian]);
+        return $this->success('Success!', ["harian" => $pendapatanharian]);
     }
     
     public function totalPemasukanAdmin(Request $request)
