@@ -104,7 +104,7 @@ class DashboardController extends Controller
         //         DB::raw('sum(operasionals.nominal) as "omset"'),
         //         // DB::raw('operasionals.outletid as outletid')
         //     ));
-        if($request->from || $request->to && $request->form != False && $request->to != False){
+        if($request->from != FALSE || $request->to != FALSE){
             $pendapatan = DB::select('
             with recursive Date_Ranges AS (
                 select \''. $request->from . '\' as Date
@@ -209,7 +209,7 @@ class DashboardController extends Controller
         //         // DB::raw('operasionals.outletid as outletid'),
         //     ));
 
-        if($request->from || $request->to && $request->form != False && $request->to != False){
+        if($request->from != FALSE || $request->to != FALSE){
             $pendapatan = DB::select('
             with recursive Date_Ranges AS (
                 select \''. $request->from . '\' as Date
@@ -516,7 +516,7 @@ class DashboardController extends Controller
     public function daftarKasirOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
-        if ($request->from || $request->to && $request->form != False && $request->to != False){
+        if ($request->from != FALSE || $request->to != FALSE){
             $users = DB::table('users')
             ->leftJoin('outlets', 'users.outlet_id', '=', 'outlets.id')
             ->whereBetween('users.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
@@ -831,7 +831,7 @@ class DashboardController extends Controller
 
         $user_outlet = Auth::user()->outlet_id;
         if($request->status){
-            if($request->from || $request->to && $request->form != False && $request->to != False){
+            if($request->from != FALSE || $request->to != FALSE){
                 $pesanan = DB::table('pesanans')
                     ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
                     ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
@@ -866,7 +866,7 @@ class DashboardController extends Controller
                     ->get();
             }
         }else{
-            if ($request->from || $reqsuest->to) {
+            if ($request->from != FALSE || $reqsuest->to != FALSE) {
                 $pesanan = DB::table('pesanans')
                     ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
                     ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
@@ -936,7 +936,7 @@ class DashboardController extends Controller
     public function reportOperasional(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
-        if($request->from || $request->to && $request->form != False && $request->to != False){
+        if($request->from != FALSE || $request->to != FALSE){
             $pendapatanharian = DB::select('
                 with recursive Date_Ranges AS (
                 select \''. $request->from . '\' as Date
