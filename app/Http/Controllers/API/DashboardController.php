@@ -972,7 +972,27 @@ class DashboardController extends Controller
             ');
         }
 
-        return $this->success('Success!', ["harian" => $pendapatanharian]);
+        $totalPendapatan = DB::table('operasionals')
+        ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        ->where('operasionals.jenis', 'PEMASUKAN')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
+        ->get();
+
+        $totalPengeluaran = DB::table('operasionals')
+        ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        ->where('operasionals.jenis', 'PENGELUARAN')
+        ->where('outlets.id', $user_outlet)
+        ->orWhere('outlets.parent', $user_outlet)
+        ->select(DB::raw('sum(operasionals.nominal) as "pengeluaran"'))
+        ->get();
+
+        $omset = $totalPendapatan[0]->pendapatan - $totalPengeluaran[0]->pengeluaran;
+
+        return $this->success('Success!', ["harian" => $pendapatanharian, "total_pendapatan" => $totalPendapatan[0]->pendapatan, "total_pengeluaran" => $totalPengeluaran[0]->pengeluaran, "omset" => $omset]);
     }
     
     public function totalPemasukanAdmin(Request $request)
