@@ -52,11 +52,15 @@ class WaktuController extends Controller
         return $this->success('Success!', $waktu);
     }
 
-    public function showadmin()
+    public function showadmin(Request $request)
     {
         $outletid = Auth::user()['outlet_id'];
         // $waktu = Waktu::all();
-        $waktu = DB::select('select w.id, w.nama, w.waktu, w.jenis, w.status, w.paket, w.idoutlet, w.created_at, w.updated_at from waktus w left join outlets o on w.idoutlet = o.id where o.id = ? or parent = ?', [$outletid, $outletid]);
+        if($request->outlet){
+            $waktu = DB::select('select w.id, w.nama, w.waktu, w.jenis, w.status, w.paket, w.idoutlet, w.created_at, w.updated_at from waktus w left join outlets o on w.idoutlet = o.id where o.id = ? and parent = ?', [$request->outlet, $outletid]);
+        }else{
+            $waktu = DB::select('select w.id, w.nama, w.waktu, w.jenis, w.status, w.paket, w.idoutlet, w.created_at, w.updated_at from waktus w left join outlets o on w.idoutlet = o.id where o.id = ? or parent = ?', [$outletid, $outletid]);
+        }
 
         return $this->success('Success!', $waktu);
     }
