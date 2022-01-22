@@ -64,7 +64,7 @@ class AuthController extends Controller
             $randomToken = $this->randomToken();
             $details = [
                 'title' => 'Verifikasi Email',
-                'subject' => 'Verivikasi Email',
+                'subject' => 'Verifikasi Email',
                 'deskripsi' => 'Silahkan Klik Link dibawah ini untuk proses verifikasi, (link hanya bisa diakses selama 10 menit) Once it\'s done you will be able to start selling!',
                 'url' => URL::signedRoute('verif', ['token' => $randomToken])
             ];
@@ -79,9 +79,10 @@ class AuthController extends Controller
             
             DB::commit();
             return $this->success('Register Success and Check Email to Verification!');
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
             DB::rollBack();
-            return $this->error('Register Failed!', [ 'message' => 'Send Email Verification Failed!'], 400);       
+            return $this->error('Register Failed!', [ 'message' => $e->getMessage()], 400); 
+            // return $this->error('Register Failed!', [ 'message' => 'Send Email Verification Failed!'], 400);       
         }
         // dd("Email is Sent.");
     }
@@ -118,7 +119,7 @@ class AuthController extends Controller
                     $randomToken = $this->randomToken();
                     $details = [
                         'title' => 'Verifikasi Email',
-                        'subject' => 'Verivikasi Email',
+                        'subject' => 'Verifikasi Email',
                         'deskripsi' => 'Silahkan Klik Link dibawah ini untuk proses verifikasi, (link hanya bisa diakses selama 10 menit) Once it\'s done you will be able to start selling!',
                         'url' => URL::signedRoute('verif', ['token' => $randomToken])
                     ];
@@ -222,7 +223,7 @@ class AuthController extends Controller
             $randomToken = $this->randomToken();
             $details = [
                 'title' => 'Verifikasi Email',
-                'subject' => 'Verivikasi Email',
+                'subject' => 'Verifikasi Email',
                 'deskripsi' => 'Silahkan Klik Link dibawah ini untuk proses verifikasi, (link hanya bisa diakses selama 10 menit)',
                 'url' => URL::signedRoute('verif', ['token' => $randomToken])
             ];
@@ -238,10 +239,10 @@ class AuthController extends Controller
             DB::commit();
             // $token->delete();
             return $this->success('Register Success and Check Email to Verification!');
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
             DB::rollBack();
             // $token->delete();
-            return $this->error('Register Failed!', [ 'message' => 'Send Email Verification Failed!'], 400);       
+            return $this->error('Register Failed!', [ 'message' => $e->getMessage()], 400);       
         }
     }
 
@@ -298,7 +299,7 @@ class AuthController extends Controller
         $notvalidate = User::where('email', $request->email)->where('email_verified_at', null)->count();
         // dd($notvalidate);
         if ($notvalidate > 0) {
-            return $this->error('Failed!', [ 'message' => 'You must Verivikasi Email'], 404);       
+            return $this->error('Failed!', [ 'message' => 'You must Verifikasi Email'], 404);       
         }
 
         DB::beginTransaction();

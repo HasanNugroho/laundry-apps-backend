@@ -63,18 +63,36 @@ class PesananController extends Controller
 
         // get data waktu
         // dd(Auth::user()['outlet_id']);
-        $waktu = DB::table('waktus')
-            ->where('id', $request->idwaktu)
-            ->where('idoutlet', Auth::user()['outlet_id'])
-            ->first();
+        // $waktu = DB::table('waktus')
+        //     ->where('id', $request->idwaktu)
+        //     ->where('idoutlet', Auth::user()['outlet_id'])
+        //     ->first();
+        if (Auth::user()['role'] == 'owner' || Auth::user()['role'] == 'admin'){
+            $waktu = DB::table('outlets')
+                ->join('waktus', 'outlets.id', '=', 'waktus.idoutlet')
+                ->join('outlet_kodes', 'outlets.id', '=', 'outlet_kodes.outletid')
+                ->select('waktus.waktu', 'waktus.paket', 'outlet_kodes.kode')
+                ->where('outlets.id', Auth::user()['outlet_id'])
+                ->orWhere('outlets.parent', Auth::user()['outlet_id'])
+                ->where('waktus.id', $request->idwaktu)
+                ->get();
+        }else{
+            $waktu = DB::table('outlets')
+                ->join('waktus', 'outlets.id', '=', 'waktus.idoutlet')
+                ->join('outlet_kodes', 'outlets.id', '=', 'outlet_kodes.outletid')
+                ->select('waktus.waktu', 'waktus.paket', 'outlet_kodes.kode')
+                ->where('outlets.id', Auth::user()['outlet_id'])
+                ->where('waktus.id', $request->idwaktu)
+                ->get();
+        }
+        
         if($waktu){
-            $deadline = Carbon::now()->addHours($waktu->waktu); 
+            $deadline = Carbon::now()->addHours($waktu[0]->waktu); 
         }else{
             return $this->error('Failed!', [ 'message' => 'Forbidden!'], 403);       
         }
 
-        // dd($deadline->format('Y-m-d H:i:s'));
-        $nota = IdGenerator::generate(['table' => 'pesanans', 'length' => 20, 'prefix' => $waktu->paket . "" . date('Ymd'). Str::random(7)]);
+        $nota = IdGenerator::generate(['table' => 'pesanans', 'length' => 6, 'field' => 'nota_transaksi', 'prefix' => $waktu[0]->kode]);
         $uuid = Str::uuid();
 
         if (Waktu::where('id', '=', $uuid)->exists()) {

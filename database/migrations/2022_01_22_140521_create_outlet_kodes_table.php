@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateVerifsTable extends Migration
+class CreateOutletKodesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,9 @@ class CreateVerifsTable extends Migration
      */
     public function up()
     {
-        Schema::create('verifs', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('userid');
-            $table->datetime('expired');
-            $table->string('token',100);
-            $table->timestamps();
+        Schema::create('outlet_kodes', function (Blueprint $table) {
+            $table->uuid('outletid');
+            $table->string('kode');
         });
     }
 
@@ -29,6 +26,6 @@ class CreateVerifsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('verifs');
+        Schema::dropIfExists('outlet_kodes');
     }
 }

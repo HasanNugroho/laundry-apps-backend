@@ -5,9 +5,11 @@ namespace App\Http\Controllers\API\Service;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Validator;
 use Illuminate\Support\Facades\DB;
 use App\Traits\ApiResponser;
+use App\Models\outletKode;
 use App\Models\Invite;
 use App\Models\User;
 use App\Models\Outlet;
@@ -17,7 +19,7 @@ use Illuminate\Support\Facades\Auth;
 class OutletController extends Controller
 {
     use ApiResponser;
-    public function show()
+    public function show()//menampilkan data outlet
     {
         $user_outlet = Auth::user()->outlet_id;
         if($user_outlet){
@@ -28,7 +30,7 @@ class OutletController extends Controller
         return $this->success(' Success!', $outlet);
     }
     
-    public function showbyid($id)
+    public function showbyid($id)//menampilkan data outlet berdasarkan id
     {
         $user_outlet = Auth::user()->outlet_id;
         $outlet = Outlet::where('id', $id)->first();
@@ -50,22 +52,43 @@ class OutletController extends Controller
         if (Outlet::where('nama_outlet', '=', $request->nama_outlet)->exists()) {
             return $this->error('Create Outlet Failed!', [ 'message' => 'Outlet exists'], 400);       
         }
-        $userExist = User::where('uid', Auth::user()->uid)->select('outlet_id')->first();
-        if($userExist->outlet_id == null){
-            $uuid = Str::uuid();
-            $outlet = Outlet::create([
-                'id' => $uuid,
-                'nama_outlet' => $request->nama_outlet,
-                'status_outlet' => 'pusat',
-                'alamat' => $request->alamat ? $request->alamat : null,
-                'sosial_media' => $request->sosial_media ? $request->sosial_media :null,
-            ]);
-            $user = User::where('uid', Auth::user()->uid)->update(['outlet_id' => $uuid]);
-        }else{
-            return $this->error('Create Outlet Failed!', [ 'message' => 'user cant create outlets!'], 400);       
+        try {
+            $lenData = DB::table('outlets')->where('status_outlet', 'pusat')->count();
+            if($lenData < 5){
+                $userExist = User::where('uid', Auth::user()->uid)->select('outlet_id')->first();
+                if($userExist->outlet_id == null || Auth::user()->email_verified_at != null){
+                    $uuid = Str::uuid();
+                    $outlet = Outlet::create([
+                        'id' => $uuid,
+                        'nama_outlet' => $request->nama_outlet,
+                        'status_outlet' => 'pusat',
+                        'alamat' => $request->alamat ? $request->alamat : null,
+                        'sosial_media' => $request->sosial_media ? $request->sosial_media :null,
+                    ]);
+                    $user = User::where('uid', Auth::user()->uid)->update(['outlet_id' => $uuid]);
+                    
+                    $y = ($lenData / 26);
+                    if ($y >= 1) {
+                        $y = intval($y);
+                        $kode = chr($y+64) . chr($lenData-$y*26 + 65);
+                    } else {
+                        $kode = chr($lenData+65);
+                    }
+    
+                    outletKode::create([
+                        'outletid' => $uuid,
+                        'kode' => $kode
+                    ]);
+                }else{ 
+                    return $this->error('Create Outlet Failed!', [ 'message' => 'user can\'t create outlets!'], 400);       
+                }
+            }else{
+                return $this->error('Create Outlet Failed!', [ 'message' => 'Outlet limited!'], 400);       
+            }
+            return $this->success('Create Outlet Success!', $outlet);
+        } catch (\Exception $e) {
+            return $this->error('Create Outlet Failed!', [ 'message' => $e->getMessage()], 400);       
         }
-
-        return $this->success('Create Outlet Success!', $outlet);
     }
 
     public function update($id, Request $request)
@@ -120,17 +143,38 @@ class OutletController extends Controller
         if (Outlet::where('nama_outlet', '=', $request->nama_outlet)->exists()) {
             return $this->error('Create Outlet Failed!', [ 'message' => 'Outlet exists'], 400);       
         }
-        $uuid = Str::uuid();
-        $outlet = Outlet::create([
-        'id' => $uuid,
-        'nama_outlet' => $request->nama_outlet,
-        'parent' => $request->parent,
-        'status_outlet' => 'cabang',
-        'alamat' => $request->alamat ? $request->alamat : null,
-        'sosial_media' => $request->sosial_media ? $request->sosial_media :null,
-        ]);
+        try {
+            $uuid = Str::uuid();
+            $outlet = Outlet::create([
+                'id' => $uuid,
+                'nama_outlet' => $request->nama_outlet,
+                'parent' => $request->parent,
+                'status_outlet' => 'cabang',
+                'alamat' => $request->alamat ? $request->alamat : null,
+                'sosial_media' => $request->sosial_media ? $request->sosial_media :null,
+            ]);
+            
+            $lenData = DB::table('outlet_kodes')
+            ->count();
 
-        return $this->success('Create Outlet Success!', $outlet);
+            $y = ($lenData / 26);
+            if ($y >= 1) {
+                $y = intval($y);
+                $kode = chr($y+64) . chr($lenData-$y*26 + 65);
+            } else {
+                $kode = chr($lenData+65);
+            }
+
+            outletKode::create([
+                'outletid' => $uuid,
+                'kode' => $kode
+            ]);
+            return $this->success('Create Outlet Success!', $outlet);
+        } catch (\Exception $e) {
+            return $this->error('Create Outlet Failed!', [ 'message' => $e->getMessage()], 400);       
+        }
+        
+
     }
 
     public function invite(Request $request)
