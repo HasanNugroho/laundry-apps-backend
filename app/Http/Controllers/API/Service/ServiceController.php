@@ -57,11 +57,15 @@ class ServiceController extends Controller
         return $this->success('Success!', $service);
     }
 
-    public function showadmin()
+    public function showadmin(Requset $request)
     {
         $outletid = Auth::user()['outlet_id'];
         // $service = Service::all();
-        $service = DB::select('select s.id, s.nama_layanan, s.harga, s.jenis, s.status, s.idwaktu, s.idoutlet, s.created_at, s.updated_at, w.nama as nama_waktu, w.waktu as estimasi from services s left join outlets o on s.idoutlet = o.id left join waktus w on s.idwaktu = w.id where o.id = ? or o.parent = ?', [$outletid, $outletid]);
+        if($request->outlet){
+            $service = DB::select('select s.id, s.nama_layanan, s.harga, s.jenis, s.status, s.idwaktu, s.idoutlet, s.created_at, s.updated_at, w.nama as nama_waktu, w.waktu as estimasi from services s left join outlets o on s.idoutlet = o.id left join waktus w on s.idwaktu = w.id where o.id = ? and o.parent = ?', [$request->outlet, $outletid]);
+        }else{
+            $service = DB::select('select s.id, s.nama_layanan, s.harga, s.jenis, s.status, s.idwaktu, s.idoutlet, s.created_at, s.updated_at, w.nama as nama_waktu, w.waktu as estimasi from services s left join outlets o on s.idoutlet = o.id left join waktus w on s.idwaktu = w.id where o.id = ? or o.parent = ?', [$outletid, $outletid]);
+        }
         return $this->success('Success!', $service);
     }
 

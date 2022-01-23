@@ -58,11 +58,15 @@ class PelangganController extends Controller
 
     }
 
-    public function showadmin()
+    public function showadmin(Request $request)
     {
         $outletid = Auth::user()['outlet_id'];
         // $waktu = Waktu::all();
-        $data_pelanggan = DB::select('select pe.id, pe.nama, pe.whatsapp, pe.alamat, pe.created_at as date_join from pelanggans pe left join outlets o on pe.outletid = o.id where o.id = ? or parent = ?', [$outletid, $outletid]);
+        if ($request->outlet) {
+            $data_pelanggan = DB::select('select pe.id, pe.nama, pe.whatsapp, pe.alamat, pe.created_at as date_join from pelanggans pe left join outlets o on pe.outletid = o.id where o.id = ? and parent = ?', [$request->outlet, $outletid]);
+        }else{
+            $data_pelanggan = DB::select('select pe.id, pe.nama, pe.whatsapp, pe.alamat, pe.created_at as date_join from pelanggans pe left join outlets o on pe.outletid = o.id where o.id = ? or parent = ?', [$outletid, $outletid]);
+        }
 
         return $this->success('Success!', $data_pelanggan);
     }

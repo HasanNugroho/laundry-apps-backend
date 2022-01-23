@@ -866,7 +866,7 @@ class DashboardController extends Controller
                     ->get();
             }
         }else{
-            if ($request->from != FALSE || $reqsuest->to != FALSE) {
+            if ($request->from != FALSE || $request->to != FALSE) {
                 $pesanan = DB::table('pesanans')
                     ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
                     ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
