@@ -57,7 +57,7 @@ class ServiceController extends Controller
         return $this->success('Success!', $service);
     }
 
-    public function showadmin(Requset $request)
+    public function showadmin(Request $request)
     {
         $outletid = Auth::user()['outlet_id'];
         // $service = Service::all();
