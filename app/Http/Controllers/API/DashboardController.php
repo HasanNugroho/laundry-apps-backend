@@ -1730,6 +1730,6 @@ class DashboardController extends Controller
         
         $totalpemasukan = $totalpendapatan[0]->pendapatan - $totalpengeluaran[0]->pengeluaran;
 
-        return $this->success('Success!', ['totalPendapatan' => $totalpemasukan]);
+        return $this->success('Success!', ['totalPendapatan' => $totalpemasukan, 'pendapatan' => $totalpendapatan[0]->pendapatan ? $totalpendapatan[0]->pendapatan : 0, 'pengeluaran' => $totalpengeluaran[0]->pengeluaran ? $totalpengeluaran[0]->pengeluaran : 0]);
     }
 }
