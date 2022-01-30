@@ -368,7 +368,29 @@ class DashboardController extends Controller
 
         }
 
-        // dd($pemasukan[0]->pemasukan);
+        return $this->success('Success!', ['pemasukan' => $pemasukan[0]->pemasukan]);
+    }
+    
+    public function pemasukanKasir(Request $request)
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        if ($request->today) {
+            $pemasukan = DB::table('pesanans')
+                ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                ->whereDate('pesanans.created_at', Carbon::today())
+                ->where('pesanans.status', '!=', 'DIBATALKAN')
+                ->where('outlets.id', $user_outlet)
+                ->get(DB::raw('sum(pembayarans.bayar) as "pemasukan"'));
+        }else{
+            $pemasukan = DB::table('pesanans')
+                ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+                ->where('pesanans.status', '!=', 'DIBATALKAN')
+                ->where('outlets.id', $user_outlet)
+                ->get(DB::raw('sum(pembayarans.bayar) as "pemasukan"'));
+        }
 
         return $this->success('Success!', ['pemasukan' => $pemasukan[0]->pemasukan]);
     }

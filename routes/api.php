@@ -62,6 +62,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
     Route::get('/dashboard/kroperasional', [DashboardController::class, 'operasionalKaryawan']);
     Route::get('/dashboard/krutang', [DashboardController::class, 'nominalutangKasir']);
     Route::get('/dashboard/kromset', [DashboardController::class, 'pendapatanKasir']);
+    Route::get('/dashboard/krpemasukan', [DashboardController::class, 'pemasukanKasir']);
     Route::get('/dashboard/krtransaksi', [DashboardController::class, 'transaksiKasir']);
     Route::get('/dashboard/krcounttransaksi', [DashboardController::class, 'countTransaksiKasir']);
     Route::get('/dashboard/krpengeluaran', [DashboardController::class, 'pengeluaranKasir']);
