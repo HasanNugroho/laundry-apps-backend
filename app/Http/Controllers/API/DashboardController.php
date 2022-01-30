@@ -302,6 +302,44 @@ class DashboardController extends Controller
         return $this->success('Success!', ['omsetHarian' => $pendapatan, 'totalPemasukan' => $totalpemasukan]);
     }
     
+    public function pemasukanOwner(Request $request)
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        if ($request->outlet){
+            if($request->outlet != $user_outlet){
+                $pemasukan = DB::table('pesanans')
+                    ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                    ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                    ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+                    ->where('pesanans.status', '!=', 'DIBATALKAN')
+                    ->where('outlets.id', $request->outlet)
+                    ->where('outlets.parent', $user_outlet)
+                    ->get(DB::raw('sum(pembayarans.bayar) as "pemasukan"'));
+            }else{
+                $pemasukan = DB::table('pesanans')
+                    ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                    ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                    ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+                    ->where('pesanans.status', '!=', 'DIBATALKAN')
+                    ->where('outlets.id', $request->outlet)
+                    ->get(DB::raw('sum(pembayarans.bayar) as "pemasukan"'));
+            }
+        }else{
+            $pemasukan = DB::table('pesanans')
+                ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+                ->whereBetween('pesanans.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+                ->where('pesanans.status', '!=', 'DIBATALKAN')
+                ->where('outlets.id', $user_outlet)
+                ->orWhere('outlets.parent', $user_outlet)
+                ->get(DB::raw('sum(pembayarans.bayar) as "pemasukan"'));
+        }
+
+        // dd($pemasukan[0]->pemasukan);
+
+        return $this->success('Success!', ['pemasukan' => $pemasukan[0]->pemasukan]);
+    }
+    
     public function pendapatanKasir()
     {
         $user_outlet = Auth::user()->outlet_id;
@@ -1718,12 +1756,14 @@ class DashboardController extends Controller
 
         $totalpendapatan = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->whereDate('operasionals.created_at', Carbon::today())
             ->where('operasionals.jenis', 'PEMASUKAN')
             ->where('outlets.id', $user_outlet)
             ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
         
         $totalpengeluaran = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->whereDate('operasionals.created_at', Carbon::today())
             ->where('operasionals.jenis', 'PENGELUARAN')
             ->where('outlets.id', $user_outlet)
             ->get(DB::raw('sum(operasionals.nominal) as "pengeluaran"'));

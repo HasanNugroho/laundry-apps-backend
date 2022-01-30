@@ -55,6 +55,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cors', 'owner']], function () {
     Route::get('/dashboard/report', [DashboardController::class, 'report']);//v
     Route::get('/dashboard/reportoperasional', [DashboardController::class, 'reportOperasional']);
     Route::get('/dashboard/totalpendapatan', [DashboardController::class, 'totalPemasukanAdmin']);//v
+    Route::get('/dashboard/pemasukan', [DashboardController::class, 'pemasukanOwner']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
