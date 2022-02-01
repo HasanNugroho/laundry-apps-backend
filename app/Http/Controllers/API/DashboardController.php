@@ -203,7 +203,7 @@ class DashboardController extends Controller
                 from Date_Ranges
                 where Date < \''. $request->to . '\'), 
                 data_pemasukan AS (
-                SELECT case when sum(p.nominal) IS NULL then 0 else sum(pmb.tagihan) end as data_pemasukan, DATE_FORMAT(p.updated_at, \'%Y-%m-%d\') as date from pesanans p LEFT JOIN outlets ou on p.outletid = ou.id INNER JOIN pembayarans pmb on p.id = pmb.idpesanan where p.jenis != \'DIBATALKAN\' and pmb.status != \'BELUM BAYAR\' and pmb.status != \'UTANG\' AND ' . $query . ' GROUP BY DATE_FORMAT(p.updated_at, \'%Y-%m-%d\')
+                SELECT case when sum(pmb.tagihan) IS NULL then 0 else sum(pmb.tagihan) end as data_pemasukan, DATE_FORMAT(p.updated_at, \'%Y-%m-%d\') as date from pesanans p LEFT JOIN outlets ou on p.outletid = ou.id INNER JOIN pembayarans pmb on p.id = pmb.idpesanan where p.jenis != \'DIBATALKAN\' and pmb.status != \'BELUM BAYAR\' and pmb.status != \'UTANG\' AND ' . $query . ' GROUP BY DATE_FORMAT(p.updated_at, \'%Y-%m-%d\')
                 )
                 
                 SELECT dr.Date as date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as omset FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date desc
@@ -217,7 +217,7 @@ class DashboardController extends Controller
                 from Date_Ranges
                 where Date < CURRENT_DATE), 
                 data_pemasukan AS (
-                SELECT case when sum(p.nominal) IS NULL then 0 else sum(pmb.tagihan) end as data_pemasukan, DATE_FORMAT(p.updated_at, \'%Y-%m-%d\') as date from pesanans p LEFT JOIN outlets ou on p.outletid = ou.id INNER JOIN pembayarans pmb on p.id = pmb.idpesanan where p.jenis != \'DIBATALKAN\' and pmb.status != \'BELUM BAYAR\' and pmb.status != \'UTANG\' AND ' . $query . ' GROUP BY DATE_FORMAT(p.updated_at, \'%Y-%m-%d\')
+                SELECT case when sum(pmb.tagihan) IS NULL then 0 else sum(pmb.tagihan) end as data_pemasukan, DATE_FORMAT(p.updated_at, \'%Y-%m-%d\') as date from pesanans p LEFT JOIN outlets ou on p.outletid = ou.id INNER JOIN pembayarans pmb on p.id = pmb.idpesanan where p.jenis != \'DIBATALKAN\' and pmb.status != \'BELUM BAYAR\' and pmb.status != \'UTANG\' AND ' . $query . ' GROUP BY DATE_FORMAT(p.updated_at, \'%Y-%m-%d\')
                 )
                 
                 SELECT dr.Date as date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as omset FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date desc
