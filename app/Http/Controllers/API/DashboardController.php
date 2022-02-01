@@ -1569,7 +1569,7 @@ class DashboardController extends Controller
 
         $dateQuery = '';
         if($request->from != FALSE || $request->to != FALSE){
-            $dateQuery = ' and pesanans.created_at between ' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . ' and ' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString());
+            $dateQuery = ' and DATE_FORMAT(pesanans.created_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()). '\'';
         }
 
         $outletQuery = '';
