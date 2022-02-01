@@ -125,8 +125,7 @@ class DashboardController extends Controller
                 ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
                 ->where('outlets.id', $request->outlet)
                 ->where('outlets.parent', $user_outlet)
-                ->select(DB::raw('tagihan as utang'))
-                ->get();
+                ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
             }else{
                 $utang = DB::table('pembayarans')->where(DB::raw('upper(pembayarans.status)'), 'UTANG')
                 ->orWhere(DB::raw('upper(pembayarans.status)'), 'BELUM BAYAR')
@@ -134,8 +133,7 @@ class DashboardController extends Controller
                 ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
                 ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
                 ->where('outlets.id', $request->outlet)
-                ->select(DB::raw('tagihan as utang'))
-                ->get();
+                ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
             }
         }else{
             $utang = DB::table('pembayarans')->where(DB::raw('upper(pembayarans.status)'), 'UTANG')
@@ -145,11 +143,10 @@ class DashboardController extends Controller
             ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
             ->where('outlets.id', $user_outlet)
             ->orWhere('outlets.parent', $user_outlet)
-            ->select(DB::raw('tagihan as utang'))
-            ->get();
+            ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
         }
 
-        return $this->success('Success!', $utang[0]->utang);
+        return $this->success('Success!', $utang[0]->utang ? $utang[0]->utang : 0);
     }
     
     public function nominalutangKasir()
@@ -160,10 +157,9 @@ class DashboardController extends Controller
         ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
         ->where('outlets.id', $user_outlet)
-        ->select(DB::raw('tagihan as utang'))
-        ->get();
+        ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
 
-        return $this->success('Success!', $utang[0]->utang);
+        return $this->success('Success!', $utang[0]->utang ? $utang[0]->utang : 0);
     }
 
     public function pendapatanOwner(Request $request)
@@ -188,7 +184,7 @@ class DashboardController extends Controller
             if($request->outlet != $user_outlet){
                 $query = 'ou.id = \''. $request->outlet . '\' and ou.parent = \''. $user_outlet . '\'';
             }else{
-                $query = 'ou.id = \''. $request->outlet;
+                $query = 'ou.id = \''. $request->outlet . '\'';
             }
         }else{
             $query = 'ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\'';
@@ -206,7 +202,7 @@ class DashboardController extends Controller
                 SELECT case when sum(pmb.tagihan) IS NULL then 0 else sum(pmb.tagihan) end as data_pemasukan, DATE_FORMAT(p.updated_at, \'%Y-%m-%d\') as date from pesanans p LEFT JOIN outlets ou on p.outletid = ou.id INNER JOIN pembayarans pmb on p.id = pmb.idpesanan where p.status != \'DIBATALKAN\' and pmb.status != \'BELUM BAYAR\' and pmb.status != \'UTANG\' AND ' . $query . ' GROUP BY DATE_FORMAT(p.updated_at, \'%Y-%m-%d\')
                 )
                 
-                SELECT dr.Date as date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as omset FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date desc
+                SELECT dr.Date as date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as omset FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date asc
             ');
         }else{
             $pendapatan = DB::select('
@@ -220,7 +216,7 @@ class DashboardController extends Controller
                 SELECT case when sum(pmb.tagihan) IS NULL then 0 else sum(pmb.tagihan) end as data_pemasukan, DATE_FORMAT(p.updated_at, \'%Y-%m-%d\') as date from pesanans p LEFT JOIN outlets ou on p.outletid = ou.id INNER JOIN pembayarans pmb on p.id = pmb.idpesanan where p.status != \'DIBATALKAN\' and pmb.status != \'BELUM BAYAR\' and pmb.status != \'UTANG\' AND ' . $query . ' GROUP BY DATE_FORMAT(p.updated_at, \'%Y-%m-%d\')
                 )
                 
-                SELECT dr.Date as date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as omset FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date desc
+                SELECT dr.Date as date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as omset FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date asc
             ');
         }
         
