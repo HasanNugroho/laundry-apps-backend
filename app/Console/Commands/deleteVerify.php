@@ -41,9 +41,9 @@ class deleteVerify extends Command
     public function handle()
     {
         $delete = verif::where('expired', '<', Carbon::now())->delete();
-        if($delete){
-            Log::channel('cron')->info('cron delete token verify running');
-        }
+        // if($delete){
+        //     Log::channel('cron')->info('cron delete token verify running');
+        // }
         return Command::SUCCESS;
     }
 }

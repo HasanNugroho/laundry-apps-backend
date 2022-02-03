@@ -1660,7 +1660,7 @@ class DashboardController extends Controller
         }else{
             $query = 'and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\'';
         }
-        if($request->from != FALSE || $request->to != FALSE || $request->from != TRUE || $request->to != TRUE){
+        if($request->from != FALSE && $request->to != FALSE && $request->from != TRUE && $request->to != TRUE){
             $pendapatanharian = DB::select('
                 with recursive Date_Ranges AS (
                 select \''. $request->from . '\' as Date
@@ -1849,6 +1849,7 @@ class DashboardController extends Controller
 
     public function reportTransaksi(Request $request)
     {
+        // dd($request->from, $request->to);
         $user_outlet = Auth::user()->outlet_id;
         if ($request->outlet) {
             if ($request->outlet != $user_outlet) {
@@ -1860,33 +1861,93 @@ class DashboardController extends Controller
             $query = 'and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\'';
         }
 
-        $report = DB::select('
-            with recursive Date_Ranges AS (
-            select CURRENT_DATE - INTERVAL 30 day as Date
-            union all
-            select Date + interval 1 day
-            from Date_Ranges
-            where Date < CURRENT_DATE), 
-            lunas AS (
-            SELECT case when sum(p.tagihan) IS NULL then 0 else sum(p.tagihan) end as lunas, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date
-            from pesanans ps 
-            innner join outlets ou on ou.id = ps.outletid
-            innner join pembayarans p on p.idpesanan = ps.id 
-            where p.status = \'LUNAS\' ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
-            ),
-            utang AS (
-            SELECT case when sum(p.tagihan) IS NULL then 0 else sum(p.tagihan) end as lunas, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date
-            from pesanans ps 
-            innner join outlets ou on ou.id = ps.outletid
-            innner join pembayarans p on p.idpesanan = ps.id 
-            where (p.status = \'BELUM BAYAR\' or p.status = \'UTANG\') ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
-            )
-            
-            SELECT dr.Date, 
-            (case when (SELECT ln.lunas from lunas ln where ln.date = dr.Date) IS NULL then 0 else (SELECT ln.lunas from lunas ln where ln.date = dr.Date) end) as lunas, 
-            (case when (SELECT ut.utang from utang ut where ut.date = dr.Date) IS NULL then 0 else (SELECT ut.utang from utang ut where ut.date = dr.Date) end) as utang FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
-        ');
+        if($request->from != FALSE && $request->to != FALSE){
+            $report = DB::select('
+                with recursive Date_Ranges AS (
+                select \''. $request->from . '\' as Date
+                union all
+                select Date + interval 1 day
+                from Date_Ranges
+                where Date < \''. $request->to . '\'), 
+                lunas AS (
+                SELECT case when sum(p.tagihan) IS NULL then 0 else sum(p.tagihan) end as lunas, DATE_FORMAT(p.created_at, \'%Y-%m-%d\') as date
+                from pesanans ps 
+                inner join outlets ou on ou.id = ps.outletid
+                inner join pembayarans p on p.idpesanan = ps.id 
+                where p.status = \'LUNAS\' ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+                ),
+                utang AS (
+                SELECT case when sum(p.tagihan) IS NULL then 0 else sum(p.tagihan) end as utang, DATE_FORMAT(p.created_at, \'%Y-%m-%d\') as date
+                from pesanans ps 
+                inner join outlets ou on ou.id = ps.outletid
+                inner join pembayarans p on p.idpesanan = ps.id 
+                where (p.status = \'BELUM BAYAR\' or p.status = \'UTANG\') ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+                ),
+                total AS (
+                SELECT count(ps.id) as total, DATE_FORMAT(p.created_at, \'%Y-%m-%d\') as date
+                from pesanans ps 
+                inner join outlets ou on ou.id = ps.outletid
+                inner join pembayarans p on p.idpesanan = ps.id 
+                where p.tagihan is not null ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+                )
+                
+                SELECT dr.Date, 
+                (case when (SELECT ln.lunas from lunas ln where ln.date = dr.Date) IS NULL then 0 else (SELECT ln.lunas from lunas ln where ln.date = dr.Date) end) as lunas, 
+                (case when (SELECT ut.utang from utang ut where ut.date = dr.Date) IS NULL then 0 else (SELECT ut.utang from utang ut where ut.date = dr.Date) end) as utang,
+                (case when (SELECT t.total from total t where t.date = dr.Date) IS NULL then 0 else (SELECT t.total from total t where t.date = dr.Date) end) as total_transaksi FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
+            ');
+        }else{
+            $report = DB::select('
+                with recursive Date_Ranges AS (
+                select CURRENT_DATE - INTERVAL 30 day as Date
+                union all
+                select Date + interval 1 day
+                from Date_Ranges
+                where Date < CURRENT_DATE), 
+                lunas AS (
+                SELECT case when sum(p.tagihan) IS NULL then 0 else sum(p.tagihan) end as lunas, DATE_FORMAT(p.created_at, \'%Y-%m-%d\') as date
+                from pesanans ps 
+                inner join outlets ou on ou.id = ps.outletid
+                inner join pembayarans p on p.idpesanan = ps.id 
+                where p.status = \'LUNAS\' ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+                ),
+                utang AS (
+                SELECT case when sum(p.tagihan) IS NULL then 0 else sum(p.tagihan) end as utang, DATE_FORMAT(p.created_at, \'%Y-%m-%d\') as date
+                from pesanans ps 
+                inner join outlets ou on ou.id = ps.outletid
+                inner join pembayarans p on p.idpesanan = ps.id 
+                where (p.status = \'BELUM BAYAR\' or p.status = \'UTANG\') ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+                ),
+                total AS (
+                SELECT count(ps.id) as total, DATE_FORMAT(p.created_at, \'%Y-%m-%d\') as date
+                from pesanans ps 
+                inner join outlets ou on ou.id = ps.outletid
+                inner join pembayarans p on p.idpesanan = ps.id 
+                where p.tagihan is not null ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+                )
+                
+                SELECT dr.Date, 
+                (case when (SELECT ln.lunas from lunas ln where ln.date = dr.Date) IS NULL then 0 else (SELECT ln.lunas from lunas ln where ln.date = dr.Date) end) as lunas, 
+                (case when (SELECT ut.utang from utang ut where ut.date = dr.Date) IS NULL then 0 else (SELECT ut.utang from utang ut where ut.date = dr.Date) end) as utang,
+                (case when (SELECT t.total from total t where t.date = dr.Date) IS NULL then 0 else (SELECT t.total from total t where t.date = dr.Date) end) as total_transaksi FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
+            ');
+        }
+
+        $totalData = DB::select('
+            SELECT sum((SELECT ps2.jumlah from pesanans ps2 LEFT JOIN services se2 on ps2.idlayanan = se2.id WHERE ps2.id = ps.id and se2.jenis = \'kiloan\')) as total_kiloan, sum((SELECT ps2.jumlah from pesanans ps2 LEFT JOIN services se2 on ps2.idlayanan = se2.id WHERE ps2.id = ps.id and se2.jenis = \'satuan\')) as total_item, sum((SELECT p2.tagihan from pembayarans p2 WHERE p2.idpesanan = ps.id and p2.status = \'LUNAS\')) as total_pemasukan , sum((SELECT p2.tagihan from pembayarans p2 WHERE p2.idpesanan = ps.id and (p2.status = \'UTANG\'or p2.status = \'BELUM BAYAR\'))) as total_utang, COUNT(ps.id) as total_transaksi FROM pesanans ps
+            INNER JOIN pembayarans p on ps.id = p.idpesanan
+            INNER JOIN outlets ou on ps.outletid = ou.id
+            INNER JOIN services se on ps.idlayanan = se.id
+            WHERE (DATE_FORMAT(ps.created_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()). '\') ' . $query 
+        );
         
-        return $this->success('Success!', report);
+        return $this->success('Success!', [
+            'report_harian' => $report,
+            'total_kiloan' => $totalData[0]->total_kiloan ? $totalData[0]->total_kiloan : 0, 
+            'total_item' => $totalData[0]->total_item ? $totalData[0]->total_item : 0, 
+            'total_pemasukan' => $totalData[0]->total_pemasukan ? $totalData[0]->total_pemasukan : 0, 
+            'total_utang' => $totalData[0]->total_utang ? $totalData[0]->total_utang : 0, 
+            'total_transaksi' => $totalData[0]->total_transaksi ? $totalData[0]->total_transaksi : 0, 
+    ]);
     }
 }
