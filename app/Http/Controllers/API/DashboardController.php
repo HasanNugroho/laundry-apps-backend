@@ -1660,7 +1660,7 @@ class DashboardController extends Controller
         }else{
             $query = 'and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\'';
         }
-        if($request->from != FALSE || $request->to != FALSE){
+        if($request->from != FALSE || $request->to != FALSE || $request->from != TRUE || $request->to != TRUE){
             $pendapatanharian = DB::select('
                 with recursive Date_Ranges AS (
                 select \''. $request->from . '\' as Date
