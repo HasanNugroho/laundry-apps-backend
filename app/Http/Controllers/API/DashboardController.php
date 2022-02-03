@@ -1846,4 +1846,47 @@ class DashboardController extends Controller
 
         return $this->success('Success!', ['totalPendapatan' => $totalpemasukan, 'pendapatan' => $totalpendapatan[0]->pendapatan ? $totalpendapatan[0]->pendapatan : 0, 'pengeluaran' => $totalpengeluaran[0]->pengeluaran ? $totalpengeluaran[0]->pengeluaran : 0]);
     }
+
+    public function reportTransaksi(Request $request)
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        if ($request->outlet) {
+            if ($request->outlet != $user_outlet) {
+                $query = 'and ou.id = \''. $request->outlet . '\' and ou.parent = \''. $user_outlet . '\'';
+            }else{
+                $query = 'and ou.id = \''. $request->outlet . '\'';
+            }
+        }else{
+            $query = 'and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\'';
+        }
+
+        $report = DB::select('
+            with recursive Date_Ranges AS (
+            select CURRENT_DATE - INTERVAL 30 day as Date
+            union all
+            select Date + interval 1 day
+            from Date_Ranges
+            where Date < CURRENT_DATE), 
+            lunas AS (
+            SELECT case when sum(p.tagihan) IS NULL then 0 else sum(p.tagihan) end as lunas, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date
+            from pesanans ps 
+            innner join outlets ou on ou.id = ps.outletid
+            innner join pembayarans p on p.idpesanan = ps.id 
+            where p.status = \'LUNAS\' ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+            ),
+            utang AS (
+            SELECT case when sum(p.tagihan) IS NULL then 0 else sum(p.tagihan) end as lunas, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date
+            from pesanans ps 
+            innner join outlets ou on ou.id = ps.outletid
+            innner join pembayarans p on p.idpesanan = ps.id 
+            where (p.status = \'BELUM BAYAR\' or p.status = \'UTANG\') ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+            )
+            
+            SELECT dr.Date, 
+            (case when (SELECT ln.lunas from lunas ln where ln.date = dr.Date) IS NULL then 0 else (SELECT ln.lunas from lunas ln where ln.date = dr.Date) end) as lunas, 
+            (case when (SELECT ut.utang from utang ut where ut.date = dr.Date) IS NULL then 0 else (SELECT ut.utang from utang ut where ut.date = dr.Date) end) as utang FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
+        ');
+        
+        return $this->success('Success!', report);
+    }
 }
