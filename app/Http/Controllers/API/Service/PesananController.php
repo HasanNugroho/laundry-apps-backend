@@ -95,10 +95,10 @@ class PesananController extends Controller
         $nota = IdGenerator::generate(['table' => 'pesanans', 'length' => 6, 'field' => 'nota_transaksi', 'prefix' => $waktu[0]->kode]);
         $uuid = Str::uuid();
 
-        if (Waktu::where('id', '=', $uuid)->exists()) {
+        if (Waktu::where('id', $uuid)->exists()) {
             return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
         }
-        if (Pesanan::where('nota_transaksi', '=', $nota)->exists()) {
+        if (Pesanan::where('nota_transaksi', $nota)->exists()) {
             return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
         }
 
