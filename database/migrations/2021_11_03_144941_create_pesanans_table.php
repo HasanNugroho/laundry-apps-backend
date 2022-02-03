@@ -16,7 +16,7 @@ class CreatePesanansTable extends Migration
         Schema::create('pesanans', function (Blueprint $table) {
             $table->uuid('id');
             $table->uuid('idwaktu');
-            $table->date('deadline');
+            $table->dateTime('deadline', $precision = 0);
             $table->string('nota_transaksi');
             $table->string('status');
             $table->string('idlayanan');
