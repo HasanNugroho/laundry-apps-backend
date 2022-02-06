@@ -90,7 +90,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'email' => 'required|email',
+            // 'email' => 'required|email',
+            'whatsapp' => 'required',
             'password' => 'required'
         ]);
 
@@ -98,7 +99,7 @@ class AuthController extends Controller
             return $this->error('Login Failed!', [ 'message' => $validator->errors()], 400);       
         }
 
-        if (User::where('email', $request->email)->doesntExist()) {
+        if (User::where('whatsapp', $request->whatsapp)->doesntExist()) {
             return $this->error('Failed!', [ 'message' => 'User don\'t exist!'], 404);       
         }
 
@@ -146,11 +147,11 @@ class AuthController extends Controller
             return $this->error('Failed!', [ 'message' => 'phone number or Password is Incorrect'], 401);       
         }
 
-        $user = User::where('email', $request['email'])->firstOrFail();
+        $user = User::where('whatsapp', $request['whatsapp'])->firstOrFail();
 
         $token = $user->createToken($user->uid)->plainTextToken;
 
-        User::where('email', $request['email'])->update(['status' => 'ACTIVE']);
+        User::where('whatsapp', $request['whatsapp'])->update(['status' => 'ACTIVE']);
 
         return $this->success('Authorized', [
             'token' => $token,
