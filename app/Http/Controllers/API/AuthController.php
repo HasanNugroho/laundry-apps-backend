@@ -141,9 +141,9 @@ class AuthController extends Controller
         //     }
         // }
 
-        if (!Auth::attempt($request->only('email', 'password')))
+        if (!Auth::attempt($request->only('whatsapp', 'password')))
         {
-            return $this->error('Failed!', [ 'message' => 'Email or Password is Incorrect'], 401);       
+            return $this->error('Failed!', [ 'message' => 'phone number or Password is Incorrect'], 401);       
         }
 
         $user = User::where('email', $request['email'])->firstOrFail();
