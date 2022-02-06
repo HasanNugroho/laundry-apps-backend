@@ -18,7 +18,7 @@ class Owner
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()['role'] == 'owner' && Auth::user()['email_verified_at'] != null) {
+        if (Auth::check() && Auth::user()['role'] == 'owner') {
             $acceptHeader = $request->header('Accept');
             if ($acceptHeader != 'application/json') {
                 return response()->json([

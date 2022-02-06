@@ -18,7 +18,8 @@ class Admin
     public function handle(Request $request, Closure $next)
     {
         if (Auth::check()){
-            if(Auth::user()['role'] != 'karyawan' && Auth::user()['email_verified_at'] != null){
+            // if(Auth::user()['role'] != 'admin' && Auth::user()['email_verified_at'] != null){
+            if(Auth::user()['role'] != 'admin'){
                 $acceptHeader = $request->header('Accept');
                 if ($acceptHeader != 'application/json') {
                     return response()->json([

@@ -16,7 +16,7 @@ class Karyawan
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role == 'karyawan' && Auth::user()['email_verified_at'] != null) {
+        if (Auth::check() && Auth::user()->role == 'karyawan') {
             $acceptHeader = $request->header('Accept');
             if ($acceptHeader != 'application/json') {
                 return response()->json([

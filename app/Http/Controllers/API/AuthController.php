@@ -61,21 +61,21 @@ class AuthController extends Controller
             $user->role = $input['role'];
             $user->save();
             
-            $randomToken = $this->randomToken();
-            $details = [
-                'title' => 'Verifikasi Email',
-                'subject' => 'Verifikasi Email',
-                'deskripsi' => 'Silahkan Klik Link dibawah ini untuk proses verifikasi, (link hanya bisa diakses selama 10 menit) Once it\'s done you will be able to start selling!',
-                'url' => URL::signedRoute('verif', ['token' => $randomToken])
-            ];
+            // $randomToken = $this->randomToken();
+            // $details = [
+            //     'title' => 'Verifikasi Email',
+            //     'subject' => 'Verifikasi Email',
+            //     'deskripsi' => 'Silahkan Klik Link dibawah ini untuk proses verifikasi, (link hanya bisa diakses selama 10 menit) Once it\'s done you will be able to start selling!',
+            //     'url' => URL::signedRoute('verif', ['token' => $randomToken])
+            // ];
             
-            $token = new verif();
-            $token->userid = $input['uid'];
-            $token->token = $randomToken;
-            $token->expired = now()->addMinutes(10);
-            $token->save();
+            // $token = new verif();
+            // $token->userid = $input['uid'];
+            // $token->token = $randomToken;
+            // $token->expired = now()->addMinutes(10);
+            // $token->save();
             
-            Mail::to($input['email'])->send(new MailVerif($details));
+            // Mail::to($input['email'])->send(new MailVerif($details));
             
             DB::commit();
             return $this->success('Register Success and Check Email to Verification!');
@@ -102,44 +102,44 @@ class AuthController extends Controller
             return $this->error('Failed!', [ 'message' => 'User don\'t exist!'], 404);       
         }
 
-        $verifiy = DB::table('users')->where('email', $request->email)->whereNull('email_verified_at')->count();
-        // dd($verifiy);
-        if($verifiy){
-            $exist_token = DB::table('users')
-            ->rightJoin('verifs', 'verifs.userid', '=', 'users.uid')
-            ->where('users.email', $request->email)
-            ->whereNull('users.email_verified_at')
-            ->count('verifs.userid');
-            if ($exist_token) {
-                return $this->error('Failed!', [ 'message' => 'Please Verifikasi Email'], 401);       
-            }else{
-                $data = DB::table('users')->where('email', $request->email)->select('uid', 'email')->get();
-                DB::beginTransaction();
-                try {
-                    $randomToken = $this->randomToken();
-                    $details = [
-                        'title' => 'Verifikasi Email',
-                        'subject' => 'Verifikasi Email',
-                        'deskripsi' => 'Silahkan Klik Link dibawah ini untuk proses verifikasi, (link hanya bisa diakses selama 10 menit) Once it\'s done you will be able to start selling!',
-                        'url' => URL::signedRoute('verif', ['token' => $randomToken])
-                    ];
+        // $verifiy = DB::table('users')->where('email', $request->email)->whereNull('email_verified_at')->count();
+        // // dd($verifiy);
+        // if($verifiy){
+        //     $exist_token = DB::table('users')
+        //     ->rightJoin('verifs', 'verifs.userid', '=', 'users.uid')
+        //     ->where('users.email', $request->email)
+        //     ->whereNull('users.email_verified_at')
+        //     ->count('verifs.userid');
+        //     if ($exist_token) {
+        //         return $this->error('Failed!', [ 'message' => 'Please Verifikasi Email'], 401);       
+        //     }else{
+        //         $data = DB::table('users')->where('email', $request->email)->select('uid', 'email')->get();
+        //         DB::beginTransaction();
+        //         try {
+        //             $randomToken = $this->randomToken();
+        //             $details = [
+        //                 'title' => 'Verifikasi Email',
+        //                 'subject' => 'Verifikasi Email',
+        //                 'deskripsi' => 'Silahkan Klik Link dibawah ini untuk proses verifikasi, (link hanya bisa diakses selama 10 menit) Once it\'s done you will be able to start selling!',
+        //                 'url' => URL::signedRoute('verif', ['token' => $randomToken])
+        //             ];
                     
-                    $token = new verif();
-                    $token->userid = $data[0]->uid;
-                    $token->token = $randomToken;
-                    $token->expired = now()->addMinutes(10);
-                    $token->save();
+        //             $token = new verif();
+        //             $token->userid = $data[0]->uid;
+        //             $token->token = $randomToken;
+        //             $token->expired = now()->addMinutes(10);
+        //             $token->save();
                     
-                    Mail::to($data[0]->email)->send(new MailVerif($details));
+        //             Mail::to($data[0]->email)->send(new MailVerif($details));
                     
-                    DB::commit();
-                    return $this->error('Login Failed!', [ 'message' => 'Check Email to Verification!'], 401);       
-                } catch (\Throwable $th) {
-                    DB::rollBack();
-                    return $this->error('Login Failed!', [ 'message' => 'Login and Send Email Verification Failed!'], 401);       
-                }
-            }
-        }
+        //             DB::commit();
+        //             return $this->error('Login Failed!', [ 'message' => 'Check Email to Verification!'], 401);       
+        //         } catch (\Throwable $th) {
+        //             DB::rollBack();
+        //             return $this->error('Login Failed!', [ 'message' => 'Login and Send Email Verification Failed!'], 401);       
+        //         }
+        //     }
+        // }
 
         if (!Auth::attempt($request->only('email', 'password')))
         {
@@ -220,21 +220,21 @@ class AuthController extends Controller
             $user->outlet_id = $input['outlet_id'];
             $user->save();
             
-            $randomToken = $this->randomToken();
-            $details = [
-                'title' => 'Verifikasi Email',
-                'subject' => 'Verifikasi Email',
-                'deskripsi' => 'Silahkan Klik Link dibawah ini untuk proses verifikasi, (link hanya bisa diakses selama 10 menit)',
-                'url' => URL::signedRoute('verif', ['token' => $randomToken])
-            ];
+            // $randomToken = $this->randomToken();
+            // $details = [
+            //     'title' => 'Verifikasi Email',
+            //     'subject' => 'Verifikasi Email',
+            //     'deskripsi' => 'Silahkan Klik Link dibawah ini untuk proses verifikasi, (link hanya bisa diakses selama 10 menit)',
+            //     'url' => URL::signedRoute('verif', ['token' => $randomToken])
+            // ];
             
-            $tokenVerif = new verif();
-            $tokenVerif->userid = $input['uid'];
-            $tokenVerif->token = $randomToken;
-            $tokenVerif->expired = now()->addMinutes(10);
-            $tokenVerif->save();
+            // $tokenVerif = new verif();
+            // $tokenVerif->userid = $input['uid'];
+            // $tokenVerif->token = $randomToken;
+            // $tokenVerif->expired = now()->addMinutes(10);
+            // $tokenVerif->save();
             
-            Mail::to($input['email'])->send(new MailVerif($details));
+            // Mail::to($input['email'])->send(new MailVerif($details));
             
             DB::commit();
             // $token->delete();
@@ -296,11 +296,11 @@ class AuthController extends Controller
             return $this->error('Failed!', [ 'message' => 'User Not Exist'], 404);       
         }
         
-        $notvalidate = User::where('email', $request->email)->where('email_verified_at', null)->count();
-        // dd($notvalidate);
-        if ($notvalidate > 0) {
-            return $this->error('Failed!', [ 'message' => 'You must Verifikasi Email'], 404);       
-        }
+        // $notvalidate = User::where('email', $request->email)->where('email_verified_at', null)->count();
+        // // dd($notvalidate);
+        // if ($notvalidate > 0) {
+        //     return $this->error('Failed!', [ 'message' => 'You must Verifikasi Email'], 404);       
+        // }
 
         DB::beginTransaction();
         try {
