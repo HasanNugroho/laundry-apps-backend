@@ -51,7 +51,7 @@ trait ApiResponser
 			'statusCode' => $code,
             'message' => $message,
 		];
-        if($data !== null || $data !== ''){
+        if($data !== null && $data !== ''){
             $respon['data'] = $data;
         }
 		return response()->json($respon, $code);

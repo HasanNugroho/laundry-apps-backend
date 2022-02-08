@@ -28,9 +28,9 @@ class WaktuController extends Controller
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
 
-        if (Waktu::where('nama', '=', $request->nama)->exists()) {
-            return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
-        }
+        // if (Waktu::where('nama', '=', $request->nama)->exists()) {
+        //     return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
+        // }
         
         $uuid = Str::uuid();
         $waktu = Waktu::create([

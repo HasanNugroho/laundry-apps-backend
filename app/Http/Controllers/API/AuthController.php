@@ -27,7 +27,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(),[
             'username' => 'required|string|max:255|unique:users',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'whatsapp' => 'required|string|unique:users',
             'alamat' => 'required|string',
@@ -175,7 +175,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(),[
             'username' => 'required|string|max:255|unique:users',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'token' => 'required|string',
             'whatsapp' => 'required|string|unique:users',
@@ -286,7 +286,7 @@ class AuthController extends Controller
     public function forgetPassword(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'email' => 'required|string|email',
+            'email' => 'string|email',
         ]);
 
         if($validator->fails()){
@@ -294,7 +294,7 @@ class AuthController extends Controller
         }
 
         if (User::where('email', $request->email)->doesntExist()) {
-            return $this->error('Failed!', [ 'message' => 'User Not Exist'], 404);       
+            return $this->error('Failed!', [ 'message' => 'Email doesn\'t Exist'], 404);       
         }
         
         // $notvalidate = User::where('email', $request->email)->where('email_verified_at', null)->count();

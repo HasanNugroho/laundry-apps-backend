@@ -56,7 +56,7 @@ class OutletController extends Controller
             $lenData = DB::table('outlets')->where('status_outlet', 'pusat')->count();
             if($lenData < 5){
                 $userExist = User::where('uid', Auth::user()->uid)->select('outlet_id')->first();
-                if($userExist->outlet_id == null || Auth::user()->email_verified_at != null){
+                if($userExist->outlet_id == null ){
                     $uuid = Str::uuid();
                     $outlet = Outlet::create([
                         'id' => $uuid,

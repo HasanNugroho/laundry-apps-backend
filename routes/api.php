@@ -114,8 +114,11 @@ Route::group(['middleware' => ['auth:sanctum', 'cors', 'owner']], function () {
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'cors', 'owner']], function () {
+    Route::get('/users', [UserController::class, 'show']);
     Route::get('/users/{id}', [UserController::class, 'showdetil']);
     Route::put('/users/{id}', [UserController::class, 'updaterole']);
+    Route::put('/user/{id}', [UserController::class, 'update']);
+    Route::delete('/user/{id}', [UserController::class, 'delete']);
 });
 
 // Waktu
@@ -164,7 +167,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
 });
 
 Route::fallback(function () {
-    return Response::json("FORBIDDEN", 403);
+    return Response::json("NOT FOUND", 404);
 });
 
 // //Kiloan
