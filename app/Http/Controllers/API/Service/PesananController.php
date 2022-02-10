@@ -92,14 +92,24 @@ class PesananController extends Controller
             return $this->error('Failed!', [ 'message' => 'Forbidden!'], 403);       
         }
 
-        $nota = IdGenerator::generate(['table' => 'pesanans', 'length' => 6, 'field' => 'nota_transaksi', 'prefix' => $waktu[0]->kode]);
         $uuid = Str::uuid();
+
+        $countId = DB::select('select count(\'id\') as total from pesanans');
+        $countId = $countId[0]->total + 1;
+        if (strlen($waktu[0]->kode) == 1){
+            $notaid = sprintf('%05d',$countId);
+        }elseif(strlen($waktu[0]->kode) == 2){
+            $notaid = sprintf('%04d',$countId);
+        }elseif(strlen($waktu[0]->kode) == 3){
+            $notaid = sprintf('%03d',$countId);
+        }
+        $nota = $waktu[0]->kode . $notaid;
 
         if (Waktu::where('id', $uuid)->exists()) {
             return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
         }
         if (Pesanan::where('nota_transaksi', $nota)->exists()) {
-            return $this->error('Failed!', [ 'message' => 'Data exists'], 400);       
+            return $this->error('Failed!', [ 'message' => 'Nota exists'], 400);       
         }
 
         $insert = [
