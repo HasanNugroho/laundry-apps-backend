@@ -23,7 +23,7 @@ class CreatePesanansTable extends Migration
             $table->string('idpelanggan');
             $table->string('note')->nullable();
             $table->uuid('outletid');
-            $table->integer('jumlah');
+            $table->decimal('jumlah', $precision = 8, $scale = 2);
             $table->string('kasir');
             $table->timestamps();
         });

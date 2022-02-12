@@ -123,6 +123,7 @@ class DashboardController extends Controller
                 ->whereBetween('pembayarans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
                 ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
                 ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                ->where('pesanans.status', '!=', 'DIBATALKAN')
                 ->where('outlets.id', $request->outlet)
                 ->where('outlets.parent', $user_outlet)
                 ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
@@ -132,6 +133,7 @@ class DashboardController extends Controller
                 ->whereBetween('pembayarans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
                 ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
                 ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+                ->where('pesanans.status', '!=', 'DIBATALKAN')
                 ->where('outlets.id', $request->outlet)
                 ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
             }
@@ -141,6 +143,7 @@ class DashboardController extends Controller
             ->whereBetween('pembayarans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
             ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
             ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+            ->where('pesanans.status', '!=', 'DIBATALKAN')
             ->where('outlets.id', $user_outlet)
             ->orWhere('outlets.parent', $user_outlet)
             ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
@@ -182,12 +185,12 @@ class DashboardController extends Controller
         //     ));
         if ($request->outlet){
             if($request->outlet != $user_outlet){
-                $query = 'ou.id = \''. $request->outlet . '\' and ou.parent = \''. $user_outlet . '\'';
+                $query = '(ou.id = \''. $request->outlet . '\' and ou.parent = \''. $user_outlet . '\')';
             }else{
-                $query = 'ou.id = \''. $request->outlet . '\'';
+                $query = '(ou.id = \''. $request->outlet . '\')';
             }
         }else{
-            $query = 'ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\'';
+            $query = '(ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\')';
         }
 
         if($request->from != FALSE || $request->to != FALSE){
@@ -199,7 +202,7 @@ class DashboardController extends Controller
                 from Date_Ranges
                 where Date < \''. $request->to . '\'), 
                 data_pemasukan AS (
-                SELECT case when sum(pmb.tagihan) IS NULL then 0 else sum(pmb.tagihan) end as data_pemasukan, DATE_FORMAT(p.updated_at, \'%Y-%m-%d\') as date from pesanans p LEFT JOIN outlets ou on p.outletid = ou.id INNER JOIN pembayarans pmb on p.id = pmb.idpesanan where p.status != \'DIBATALKAN\' and pmb.status != \'BELUM BAYAR\' and pmb.status != \'UTANG\' AND ' . $query . ' GROUP BY DATE_FORMAT(p.updated_at, \'%Y-%m-%d\')
+                SELECT case when sum(pmb.tagihan) IS NULL then 0 else sum(pmb.tagihan) end as data_pemasukan, DATE_FORMAT(p.updated_at, \'%Y-%m-%d\') as date from pesanans p LEFT JOIN outlets ou on p.outletid = ou.id INNER JOIN pembayarans pmb on p.id = pmb.idpesanan where (p.status != \'DIBATALKAN\' and pmb.status != \'BELUM BAYAR\' and pmb.status != \'UTANG\') AND ' . $query . ' GROUP BY DATE_FORMAT(p.updated_at, \'%Y-%m-%d\')
                 )
                 
                 SELECT dr.Date as date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as omset FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date asc
@@ -213,7 +216,7 @@ class DashboardController extends Controller
                 from Date_Ranges
                 where Date < CURRENT_DATE), 
                 data_pemasukan AS (
-                SELECT case when sum(pmb.tagihan) IS NULL then 0 else sum(pmb.tagihan) end as data_pemasukan, DATE_FORMAT(p.updated_at, \'%Y-%m-%d\') as date from pesanans p LEFT JOIN outlets ou on p.outletid = ou.id INNER JOIN pembayarans pmb on p.id = pmb.idpesanan where p.status != \'DIBATALKAN\' and pmb.status != \'BELUM BAYAR\' and pmb.status != \'UTANG\' AND ' . $query . ' GROUP BY DATE_FORMAT(p.updated_at, \'%Y-%m-%d\')
+                SELECT case when sum(pmb.tagihan) IS NULL then 0 else sum(pmb.tagihan) end as data_pemasukan, DATE_FORMAT(p.updated_at, \'%Y-%m-%d\') as date from pesanans p LEFT JOIN outlets ou on p.outletid = ou.id INNER JOIN pembayarans pmb on p.id = pmb.idpesanan where (p.status != \'DIBATALKAN\' and pmb.status != \'BELUM BAYAR\' and pmb.status != \'UTANG\') AND ' . $query . ' GROUP BY DATE_FORMAT(p.updated_at, \'%Y-%m-%d\')
                 )
                 
                 SELECT dr.Date as date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as omset FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date asc
@@ -613,7 +616,7 @@ class DashboardController extends Controller
                 $all = DB::table('pesanans')
                 ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
                 ->whereBetween('pesanans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-                ->where(DB::raw('upper(pesanans.status)'),'!=', 'DIBATALKAN')
+                // ->where(DB::raw('upper(pesanans.status)'),'!=', 'DIBATALKAN')
                 ->where('outlets.id', $request->outlet)
                 ->where('outlets.parent', $user_outlet)
                 ->count();
@@ -621,7 +624,7 @@ class DashboardController extends Controller
                 $all = DB::table('pesanans')
                 ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
                 ->whereBetween('pesanans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-                ->where(DB::raw('upper(pesanans.status)'),'!=', 'DIBATALKAN')
+                // ->where(DB::raw('upper(pesanans.status)'),'!=', 'DIBATALKAN')
                 ->where('outlets.id', $request->outlet)
                 ->count();
             }
@@ -629,7 +632,7 @@ class DashboardController extends Controller
             $all = DB::table('pesanans')
             ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
             ->whereBetween('pesanans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-            ->where(DB::raw('upper(pesanans.status)'),'!=', 'DIBATALKAN')
+            // ->where(DB::raw('upper(pesanans.status)'),'!=', 'DIBATALKAN')
             ->where('outlets.id', $user_outlet)
             ->orWhere('outlets.parent', $user_outlet)
             ->count();
@@ -1568,7 +1571,7 @@ class DashboardController extends Controller
         // }
 
         $dateQuery = '';
-        if($request->from != FALSE || $request->to != FALSE){
+        if($request->from != FALSE && $request->to != FALSE && $request->from != 'false' && $request->to != 'false'){
             $dateQuery = ' and DATE_FORMAT(pesanans.created_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()). '\'';
         }
 
@@ -1591,6 +1594,8 @@ class DashboardController extends Controller
                 // dd(DB::getQueryLog()); // Show results of log
 
         $query = $outletQuery . $dateQuery . $statusQuery;
+
+        // dd('select pesanans.*, pelanggans.nama, pelanggans.whatsapp, pelanggans.alamat, outlets.nama_outlet, outlets.status_outlet, outlets.sosial_media, services.nama_layanan, services.harga, services.kategori, services.jenis, services.item, pembayarans.status as statusPembayaran, pembayarans.metode_pembayaran, pembayarans.subtotal, pembayarans.diskon, pembayarans.utang, pembayarans.tagihan, pembayarans.bayar, waktus.nama as nama_waktu, waktus.waktu as durasi, waktus.paket as paket_waktu, waktus.jenis as jenis_waktu from pesanans left join pelanggans on pesanans.idpelanggan = pelanggans.id left join outlets on pesanans.outletid = outlets.id left join services on pesanans.idlayanan = services.id left join waktus on pesanans.idwaktu = waktus.id right join pembayarans on pesanans.id = pembayarans.idpesanan where ' . $query . ' order by created_at desc');
         
         $pesanan = DB::select('select pesanans.*, pelanggans.nama, pelanggans.whatsapp, pelanggans.alamat, outlets.nama_outlet, outlets.status_outlet, outlets.sosial_media, services.nama_layanan, services.harga, services.kategori, services.jenis, services.item, pembayarans.status as statusPembayaran, pembayarans.metode_pembayaran, pembayarans.subtotal, pembayarans.diskon, pembayarans.utang, pembayarans.tagihan, pembayarans.bayar, waktus.nama as nama_waktu, waktus.waktu as durasi, waktus.paket as paket_waktu, waktus.jenis as jenis_waktu from pesanans left join pelanggans on pesanans.idpelanggan = pelanggans.id left join outlets on pesanans.outletid = outlets.id left join services on pesanans.idlayanan = services.id left join waktus on pesanans.idwaktu = waktus.id right join pembayarans on pesanans.id = pembayarans.idpesanan where ' . $query . ' order by created_at desc');
         
@@ -1684,7 +1689,7 @@ class DashboardController extends Controller
                union all
                select Date + interval 1 day
                from Date_Ranges
-               where Date < CURRENT_DATE), 
+               where Date < CURRENT_DATE + interval 1 day), 
                data_pemasukan AS (
                SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
                ),
@@ -1755,11 +1760,20 @@ class DashboardController extends Controller
             ->select(DB::raw('sum(operasionals.nominal) as "pengeluaran"'))
             ->get();
         }
-
+        
+        $pendapatanArr = [];
+        foreach($pendapatanharian as $dataHarian){
+            // $data = {};
+            $data['Date'] = $dataHarian->Date;
+            $data['data_pemasukan'] = $dataHarian->data_pemasukan;
+            $data['data_pengeluaran'] = $dataHarian->data_pengeluaran;
+            $data['total'] =  $dataHarian->data_pemasukan-$dataHarian->data_pengeluaran ;
+            array_push($pendapatanArr,$data);
+        }
 
         $omset = ($totalPendapatan[0]->pendapatan ? $totalPendapatan[0]->pendapatan : 0) - ($totalPengeluaran[0]->pengeluaran ? $totalPengeluaran[0]->pengeluaran : 0);
 
-        return $this->success('Success!', ["harian" => $pendapatanharian, "total_pendapatan" => $totalPendapatan[0]->pendapatan ? $totalPendapatan[0]->pendapatan : 0, "total_pengeluaran" => $totalPengeluaran[0]->pengeluaran ? $totalPengeluaran[0]->pengeluaran : 0, "omset" => $omset]);
+        return $this->success('Success!', ["harian" => $pendapatanArr, "total_pendapatan" => $totalPendapatan[0]->pendapatan ? $totalPendapatan[0]->pendapatan : 0, "total_pengeluaran" => $totalPengeluaran[0]->pengeluaran ? $totalPengeluaran[0]->pengeluaran : 0, "omset" => $omset]);
     }
     
     public function totalPemasukanAdmin(Request $request)
@@ -1874,21 +1888,21 @@ class DashboardController extends Controller
                 from pesanans ps 
                 inner join outlets ou on ou.id = ps.outletid
                 inner join pembayarans p on p.idpesanan = ps.id 
-                where p.status = \'LUNAS\' ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+                where (p.status = \'LUNAS\' and ps.status != \'DIBATALKAN\') ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
                 ),
                 utang AS (
                 SELECT case when sum(p.tagihan) IS NULL then 0 else sum(p.tagihan) end as utang, DATE_FORMAT(p.created_at, \'%Y-%m-%d\') as date
                 from pesanans ps 
                 inner join outlets ou on ou.id = ps.outletid
                 inner join pembayarans p on p.idpesanan = ps.id 
-                where (p.status = \'BELUM BAYAR\' or p.status = \'UTANG\') ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+                where (p.status = \'BELUM BAYAR\' or p.status = \'UTANG\') and ps.status != \'DIBATALKAN\' ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
                 ),
                 total AS (
                 SELECT count(ps.id) as total, DATE_FORMAT(p.created_at, \'%Y-%m-%d\') as date
                 from pesanans ps 
                 inner join outlets ou on ou.id = ps.outletid
                 inner join pembayarans p on p.idpesanan = ps.id 
-                where p.tagihan is not null ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+                where (p.tagihan is not null and ps.status != \'DIBATALKAN\') ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
                 )
                 
                 SELECT dr.Date, 
@@ -1903,27 +1917,27 @@ class DashboardController extends Controller
                 union all
                 select Date + interval 1 day
                 from Date_Ranges
-                where Date < CURRENT_DATE), 
+                where Date < CURRENT_DATE + interval 1 day), 
                 lunas AS (
                 SELECT case when sum(p.tagihan) IS NULL then 0 else sum(p.tagihan) end as lunas, DATE_FORMAT(p.created_at, \'%Y-%m-%d\') as date
                 from pesanans ps 
                 inner join outlets ou on ou.id = ps.outletid
                 inner join pembayarans p on p.idpesanan = ps.id 
-                where p.status = \'LUNAS\' ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+                where (p.status = \'LUNAS\' and ps.status != \'DIBATALKAN\') ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
                 ),
                 utang AS (
                 SELECT case when sum(p.tagihan) IS NULL then 0 else sum(p.tagihan) end as utang, DATE_FORMAT(p.created_at, \'%Y-%m-%d\') as date
                 from pesanans ps 
                 inner join outlets ou on ou.id = ps.outletid
                 inner join pembayarans p on p.idpesanan = ps.id 
-                where (p.status = \'BELUM BAYAR\' or p.status = \'UTANG\') ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+                where (p.status = \'BELUM BAYAR\' or p.status = \'UTANG\') and ps.status != \'DIBATALKAN\' ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
                 ),
                 total AS (
                 SELECT count(ps.id) as total, DATE_FORMAT(p.created_at, \'%Y-%m-%d\') as date
                 from pesanans ps 
                 inner join outlets ou on ou.id = ps.outletid
                 inner join pembayarans p on p.idpesanan = ps.id 
-                where p.tagihan is not null ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
+                where (p.tagihan is not null and ps.status != \'DIBATALKAN\') ' . $query . ' GROUP BY DATE_FORMAT(p.created_at, \'%Y-%m-%d\')
                 )
                 
                 SELECT dr.Date, 
@@ -1938,7 +1952,7 @@ class DashboardController extends Controller
             INNER JOIN pembayarans p on ps.id = p.idpesanan
             INNER JOIN outlets ou on ps.outletid = ou.id
             INNER JOIN services se on ps.idlayanan = se.id
-            WHERE (DATE_FORMAT(ps.created_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()). '\') ' . $query 
+            WHERE ps.status != \'DIBATALKAN\' and (DATE_FORMAT(ps.created_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()). '\') ' . $query 
         );
         
         return $this->success('Success!', [

@@ -47,7 +47,7 @@ class PesananController extends Controller
        
         $validate = [
             'idwaktu' => 'required|string',
-            'jumlah' => 'required|integer',
+            'jumlah' => 'required|between:0,99.99',
             'idlayanan' => 'required|string',
             'status_pembayaran' => 'required|string',
             'tagihan' => 'required|integer',
