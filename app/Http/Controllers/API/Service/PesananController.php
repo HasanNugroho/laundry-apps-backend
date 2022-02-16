@@ -340,7 +340,7 @@ class PesananController extends Controller
             })
             ->where('pesanans.status', 'SELESAI')
             ->where('outlets.id', $user_outlet)
-            ->select('pelanggans.nama', 'pesanans.nota_transaksi', 'pembayarans.status', 'waktus.paket', 'services.nama_layanan', 'outlets.nama_outlet', 'outlets.status_outlet', 'pesanans.created_at', 'pesanans.updated_at')
+            ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
             ->get();
         }else{
             $pesanan = DB::table('pesanans')
@@ -351,7 +351,7 @@ class PesananController extends Controller
                 ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
                 ->where('pesanans.status', 'SELESAI')
                 ->where('outlets.id', $user_outlet)
-                ->select('pelanggans.nama', 'pesanans.nota_transaksi', 'pembayarans.status', 'waktus.paket', 'services.nama_layanan', 'outlets.nama_outlet', 'outlets.status_outlet', 'pesanans.created_at', 'pesanans.updated_at')
+                ->select('pesanans.*', 'pelanggans.nama', 'pelanggans.whatsapp', 'pelanggans.alamat', 'outlets.nama_outlet', 'outlets.status_outlet', 'outlets.sosial_media', 'services.nama_layanan', 'services.harga', 'services.kategori', 'services.jenis', 'services.item', 'pembayarans.status as statusPembayaran', 'pembayarans.metode_pembayaran', 'pembayarans.subtotal', 'pembayarans.diskon', 'pembayarans.utang', 'pembayarans.tagihan', 'pembayarans.bayar', 'waktus.nama as nama_waktu', 'waktus.waktu as durasi', 'waktus.paket as paket_waktu', 'waktus.jenis as jenis_waktu')
                 ->get();
         }
         if($pesanan){
