@@ -11,6 +11,9 @@ use App\Models\AssetKabupaten_kota;
 use App\Models\AssetKelurahan;
 use App\Models\AssetStatus;
 use App\Traits\ApiResponser;
+use App\Imports\ImportPelanggan;
+use Maatwebsite\Excel\Facades\Excel;
+use Validator;
 
 class AssetController extends Controller
 {
@@ -155,5 +158,18 @@ class AssetController extends Controller
         }else{
             return $this->error('Failed!', [ 'message' => $status->errors()], 400);
         }
+    }
+
+    public function importPelanggan(Request $request)
+    {
+        $validate = [
+            'file' => 'required|mimes:csv,txt,xlx,xls,xlsx',
+        ];
+        $validator = Validator::make($request->all(),$validate);
+        if($validator->fails()){
+            return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
+        }
+        Excel::import(new ImportPelanggan,request()->file('file'));
+        return $this->success('Success!');
     }
 }

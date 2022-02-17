@@ -79,6 +79,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cors','owner']], function () {
 
 //pelanggan
 Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
+    Route::post('/import-user-client', [AssetController::class, 'importPelanggan']);
     Route::post('/pelanggan', [PelangganController::class, 'create']);
     Route::get('/pelanggan', [PelangganController::class, 'show']);
     Route::get('/pelanggan/{id}', [PelangganController::class, 'showbyid']);
