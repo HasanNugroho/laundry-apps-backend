@@ -163,7 +163,7 @@ class AssetController extends Controller
     public function importPelanggan(Request $request)
     {
         $validate = [
-            'file' => 'required|mimes:csv,txt,xlx,xls,xlsx',
+            'file' => 'required|mimes:csv,xls,xlsx',
         ];
         $validator = Validator::make($request->all(),$validate);
         if($validator->fails()){
