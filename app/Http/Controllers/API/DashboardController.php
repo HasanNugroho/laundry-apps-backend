@@ -115,39 +115,59 @@ class DashboardController extends Controller
     public function nominalutangOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
-        if ($request->outlet){
+        $outletQuery = '';
+        if($request->outlet){
             if($request->outlet != $user_outlet){
-                $utang = DB::table('pembayarans')
-                ->where(DB::raw('upper(pembayarans.status)'), 'UTANG')
-                ->orWhere(DB::raw('upper(pembayarans.status)'), 'BELUM BAYAR')
-                ->whereBetween('pembayarans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-                ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-                ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-                ->where('pesanans.status', '!=', 'DIBATALKAN')
-                ->where('outlets.id', $request->outlet)
-                ->where('outlets.parent', $user_outlet)
-                ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
+                $outletQuery = ' and outlets.id = \'' . $request->outlet .'\' ';
             }else{
-                $utang = DB::table('pembayarans')->where(DB::raw('upper(pembayarans.status)'), 'UTANG')
-                ->orWhere(DB::raw('upper(pembayarans.status)'), 'BELUM BAYAR')
-                ->whereBetween('pembayarans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-                ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-                ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-                ->where('pesanans.status', '!=', 'DIBATALKAN')
-                ->where('outlets.id', $request->outlet)
-                ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
+                $outletQuery = ' and (outlets.id = \'' . $user_outlet . '\' or outlets.parent = \'' . $user_outlet . '\') ';
             }
         }else{
-            $utang = DB::table('pembayarans')->where(DB::raw('upper(pembayarans.status)'), 'UTANG')
-            ->orWhere(DB::raw('upper(pembayarans.status)'), 'BELUM BAYAR')
-            ->whereBetween('pembayarans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-            ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-            ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
-            ->where('pesanans.status', '!=', 'DIBATALKAN')
-            ->where('outlets.id', $user_outlet)
-            ->orWhere('outlets.parent', $user_outlet)
-            ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
+            $outletQuery = ' and (outlets.id = \'' . $user_outlet . '\' or outlets.parent = \'' . $user_outlet . '\') ';
         }
+        
+        // query date 
+        $queryDate = '';
+        if ($request->today){
+            $queryDate = ' DATE_FORMAT(pesanans.updated_at, \'%Y-%m-%d\') = \'' . Carbon::today() . '\' and ';
+        }else{
+            $queryDate = ' DATE_FORMAT(pesanans.updated_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()) . '\' and ';
+        }
+        $utang = DB::select('select sum(pembayarans.tagihan) as utang from pesanans inner join outlets on pesanans.outletid = outlets.id inner join pembayarans on pesanans.id = pembayarans.idpesanan where ' . $queryDate . ' pesanans.status != \'DIBATALKAN\' and (pembayarans.status = \'BELUM BAYAR\' or pembayarans.status = \'UTANG\') ' . $outletQuery);
+
+        // if ($request->outlet){
+        //     if($request->outlet != $user_outlet){
+        //         $utang = DB::table('pembayarans')
+        //         ->where(DB::raw('upper(pembayarans.status)'), 'UTANG')
+        //         ->orWhere(DB::raw('upper(pembayarans.status)'), 'BELUM BAYAR')
+        //         ->whereBetween('pembayarans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        //         ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+        //         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        //         ->where('pesanans.status', '!=', 'DIBATALKAN')
+        //         ->where('outlets.id', $request->outlet)
+        //         ->where('outlets.parent', $user_outlet)
+        //         ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
+        //     }else{
+        //         $utang = DB::table('pembayarans')->where(DB::raw('upper(pembayarans.status)'), 'UTANG')
+        //         ->orWhere(DB::raw('upper(pembayarans.status)'), 'BELUM BAYAR')
+        //         ->whereBetween('pembayarans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        //         ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+        //         ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        //         ->where('pesanans.status', '!=', 'DIBATALKAN')
+        //         ->where('outlets.id', $request->outlet)
+        //         ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
+        //     }
+        // }else{
+        //     $utang = DB::table('pembayarans')->where(DB::raw('upper(pembayarans.status)'), 'UTANG')
+        //     ->orWhere(DB::raw('upper(pembayarans.status)'), 'BELUM BAYAR')
+        //     ->whereBetween('pembayarans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        //     ->rightJoin('pesanans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+        //     ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        //     ->where('pesanans.status', '!=', 'DIBATALKAN')
+        //     ->where('outlets.id', $user_outlet)
+        //     ->orWhere('outlets.parent', $user_outlet)
+        //     ->get(DB::raw('sum(pembayarans.tagihan) as utang'));
+        // }
 
         return $this->success('Success!', $utang[0]->utang ? $utang[0]->utang : 0);
     }
@@ -224,32 +244,32 @@ class DashboardController extends Controller
         }
         
         // dd(DB::getQueryLog()); // Show results of log
-        if ($request->outlet){
-            if($request->outlet != $user_outlet){
-                $totalpendapatan = DB::table('operasionals')
-                    ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-                    ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
-                    ->where('operasionals.jenis', 'PEMASUKAN')
-                    ->where('outlets.id', $request->outlet)
-                    ->where('outlets.parent', $user_outlet)
-                    ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
-            }else{
-                $totalpendapatan = DB::table('operasionals')
-                    ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-                    ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
-                    ->where('operasionals.jenis', 'PEMASUKAN')
-                    ->where('outlets.id', $request->outlet)
-                    ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
-            }
-        }else{
-            $totalpendapatan = DB::table('operasionals')
-                ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-                ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
-                ->where('operasionals.jenis', 'PEMASUKAN')
-                ->where('outlets.id', $user_outlet)
-                ->orWhere('outlets.parent', $user_outlet)
-                ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
-        }
+        // if ($request->outlet){
+        //     if($request->outlet != $user_outlet){
+        //         $totalpendapatan = DB::table('operasionals')
+        //             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //             ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+        //             ->where('operasionals.jenis', 'PEMASUKAN')
+        //             ->where('outlets.id', $request->outlet)
+        //             ->where('outlets.parent', $user_outlet)
+        //             ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
+        //     }else{
+        //         $totalpendapatan = DB::table('operasionals')
+        //             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //             ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+        //             ->where('operasionals.jenis', 'PEMASUKAN')
+        //             ->where('outlets.id', $request->outlet)
+        //             ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
+        //     }
+        // }else{
+        //     $totalpendapatan = DB::table('operasionals')
+        //         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //         ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+        //         ->where('operasionals.jenis', 'PEMASUKAN')
+        //         ->where('outlets.id', $user_outlet)
+        //         ->orWhere('outlets.parent', $user_outlet)
+        //         ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
+        // }
 
         if ($request->outlet){
             if($request->outlet != $user_outlet){
@@ -313,80 +333,106 @@ class DashboardController extends Controller
     public function pemasukanOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
-        if ($request->today) {
-            if ($request->outlet){
-                if($request->outlet != $user_outlet){
-                    $pemasukan = DB::table('pesanans')
-                        ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
-                        ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-                        ->whereDate('pesanans.updated_at', Carbon::today())
-                        ->where('pesanans.status', '!=', 'DIBATALKAN')
-                        ->where('pembayarans.status', '!=', 'BELUM BAYAR')
-                        ->where('pembayarans.status', '!=', 'UTANG')
-                        ->where('outlets.id', $request->outlet)
-                        ->where('outlets.parent', $user_outlet)
-                        ->get(DB::raw('sum(pembayarans.tagihan) as "pemasukan"'));
-                }else{
-                    $pemasukan = DB::table('pesanans')
-                        ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
-                        ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-                        ->whereDate('pesanans.updated_at', Carbon::today())
-                        ->where('pesanans.status', '!=', 'DIBATALKAN')
-                        ->where('pembayarans.status', '!=', 'BELUM BAYAR')
-                        ->where('pembayarans.status', '!=', 'UTANG')
-                        ->where('outlets.id', $request->outlet)
-                        ->get(DB::raw('sum(pembayarans.tagihan) as "pemasukan"'));
-                }
+
+        // query outlet
+        $outletQuery = '';
+        if($request->outlet){
+            if($request->outlet != $user_outlet){
+                $outletQuery = ' and outlets.id = \'' . $request->outlet .'\' ';
             }else{
-                $pemasukan = DB::table('pesanans')
-                    ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
-                    ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-                    ->whereDate('pesanans.updated_at', Carbon::today())
-                    ->where('pesanans.status', '!=', 'DIBATALKAN')
-                    ->where('pembayarans.status', '!=', 'BELUM BAYAR')
-                    ->where('pembayarans.status', '!=', 'UTANG')
-                    ->where('outlets.id', $user_outlet)
-                    ->orWhere('outlets.parent', $user_outlet)
-                    ->get(DB::raw('sum(pembayarans.tagihan) as "pemasukan"'));
+                $outletQuery = ' and (outlets.id = \'' . $user_outlet . '\' or outlets.parent = \'' . $user_outlet . '\') ';
             }
         }else{
-            if ($request->outlet){
-                if($request->outlet != $user_outlet){
-                    $pemasukan = DB::table('pesanans')
-                        ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
-                        ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-                        ->whereBetween('pesanans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
-                        ->where('pesanans.status', '!=', 'DIBATALKAN')
-                        ->where('pembayarans.status', '!=', 'BELUM BAYAR')
-                        ->where('pembayarans.status', '!=', 'UTANG')
-                        ->where('outlets.id', $request->outlet)
-                        ->where('outlets.parent', $user_outlet)
-                        ->get(DB::raw('sum(pembayarans.tagihan) as "pemasukan"'));
-                }else{
-                    $pemasukan = DB::table('pesanans')
-                        ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
-                        ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-                        ->whereBetween('pesanans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
-                        ->where('pesanans.status', '!=', 'DIBATALKAN')
-                        ->where('pembayarans.status', '!=', 'BELUM BAYAR')
-                        ->where('pembayarans.status', '!=', 'UTANG')
-                        ->where('outlets.id', $request->outlet)
-                        ->get(DB::raw('sum(pembayarans.tagihan) as "pemasukan"'));
-                }
-            }else{
-                $pemasukan = DB::table('pesanans')
-                    ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
-                    ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-                    ->whereBetween('pesanans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
-                    ->where('pesanans.status', '!=', 'DIBATALKAN')
-                    ->where('pembayarans.status', '!=', 'BELUM BAYAR')
-                    ->where('pembayarans.status', '!=', 'UTANG')
-                    ->where('outlets.id', $user_outlet)
-                    ->orWhere('outlets.parent', $user_outlet)
-                    ->get(DB::raw('sum(pembayarans.tagihan) as "pemasukan"'));
-            }
-
+            $outletQuery = ' and (outlets.id = \'' . $user_outlet . '\' or outlets.parent = \'' . $user_outlet . '\') ';
         }
+        
+        // query date 
+        $queryDate = '';
+        if ($request->today){
+            $queryDate = ' DATE_FORMAT(pesanans.updated_at, \'%Y-%m-%d\') = \'' . Carbon::today() . '\' and ';
+        }else{
+            $queryDate = ' DATE_FORMAT(pesanans.updated_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()) . '\' and ';
+        }
+        $pemasukan = DB::select('select sum(pembayarans.tagihan) as pemasukan from pesanans inner join outlets on pesanans.outletid = outlets.id inner join pembayarans on pesanans.id = pembayarans.idpesanan where ' . $queryDate . ' pesanans.status != \'DIBATALKAN\' and (pembayarans.status != \'BELUM BAYAR\' and pembayarans.status != \'UTANG\') ' . $outletQuery);
+        // if ($request->today) {
+        //     if ($request->outlet){
+        //         if($request->outlet != $user_outlet){
+        //             $pemasukan = DB::table('pesanans')
+        //                 ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        //                 ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+        //                 ->whereDate('pesanans.updated_at', Carbon::today())
+        //                 ->where(function($query) use($request, $user_outlet) {
+        //                     $query;
+        //                     $query->where('pesanans.status', '!=', 'DIBATALKAN');
+        //                     $query->where('pembayarans.status', '!=', 'BELUM BAYAR');
+        //                     $query->where('pembayarans.status', '!=', 'UTANG');
+        //                 })
+        //                 ->where('pesanans.status', '!=', 'DIBATALKAN')
+        //                 ->where('pembayarans.status', '!=', 'BELUM BAYAR')
+        //                 ->where('pembayarans.status', '!=', 'UTANG')
+        //                 ->where('outlets.id', $request->outlet)
+        //                 ->where('outlets.parent', $user_outlet)
+        //                 ->get(DB::raw('sum(pembayarans.tagihan) as "pemasukan"'));
+        //         }else{
+        //             $pemasukan = DB::table('pesanans')
+        //                 ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        //                 ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+        //                 ->whereDate('pesanans.updated_at', Carbon::today())
+        //                 ->where('pesanans.status', '!=', 'DIBATALKAN')
+        //                 ->where('pembayarans.status', '!=', 'BELUM BAYAR')
+        //                 ->where('pembayarans.status', '!=', 'UTANG')
+        //                 ->where('outlets.id', $request->outlet)
+        //                 ->get(DB::raw('sum(pembayarans.tagihan) as "pemasukan"'));
+        //         }
+        //     }else{
+        //         $pemasukan = DB::table('pesanans')
+        //             ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        //             ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+        //             ->whereDate('pesanans.updated_at', Carbon::today())
+        //             ->where('pesanans.status', '!=', 'DIBATALKAN')
+        //             ->where('pembayarans.status', '!=', 'BELUM BAYAR')
+        //             ->where('pembayarans.status', '!=', 'UTANG')
+        //             ->where('outlets.id', $user_outlet)
+        //             ->orWhere('outlets.parent', $user_outlet)
+        //             ->get(DB::raw('sum(pembayarans.tagihan) as "pemasukan"'));
+        //     }
+        // }else{
+        //     if ($request->outlet){
+        //         if($request->outlet != $user_outlet){
+        //             $pemasukan = DB::table('pesanans')
+        //                 ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        //                 ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+        //                 ->whereBetween('pesanans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+        //                 ->where('pesanans.status', '!=', 'DIBATALKAN')
+        //                 ->where('pembayarans.status', '!=', 'BELUM BAYAR')
+        //                 ->where('pembayarans.status', '!=', 'UTANG')
+        //                 ->where('outlets.id', $request->outlet)
+        //                 ->where('outlets.parent', $user_outlet)
+        //                 ->get(DB::raw('sum(pembayarans.tagihan) as "pemasukan"'));
+        //         }else{
+        //             $pemasukan = DB::table('pesanans')
+        //                 ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        //                 ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+        //                 ->whereBetween('pesanans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+        //                 ->where('pesanans.status', '!=', 'DIBATALKAN')
+        //                 ->where('pembayarans.status', '!=', 'BELUM BAYAR')
+        //                 ->where('pembayarans.status', '!=', 'UTANG')
+        //                 ->where('outlets.id', $request->outlet)
+        //                 ->get(DB::raw('sum(pembayarans.tagihan) as "pemasukan"'));
+        //         }
+        //     }else{
+        //         $pemasukan = DB::table('pesanans')
+        //             ->join('outlets', 'pesanans.outletid', '=', 'outlets.id')
+        //             ->join('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+        //             ->whereBetween('pesanans.updated_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+        //             ->where('pesanans.status', '!=', 'DIBATALKAN')
+        //             ->where('pembayarans.status', '!=', 'BELUM BAYAR')
+        //             ->where('pembayarans.status', '!=', 'UTANG')
+        //             ->where('outlets.id', $user_outlet)
+        //             ->orWhere('outlets.parent', $user_outlet)
+        //             ->get(DB::raw('sum(pembayarans.tagihan) as "pemasukan"'));
+        //     }
+        // }
 
         return $this->success('Success!', ['pemasukan' => $pemasukan[0]->pemasukan]);
     }

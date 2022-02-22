@@ -4,9 +4,9 @@ namespace App\Imports;
 
 use App\Models\Pelanggan;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class ImportPelanggan implements ToModel, WithHeadingRow
 {
