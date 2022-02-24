@@ -130,7 +130,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
 });
 
 //admin
-Route::group(['middleware' => ['auth:sanctum', 'cors', 'admin']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cors', 'admin', 'owner']], function () {
     Route::get('/adwaktu', [WaktuController::class, 'showadmin']);
     Route::post('/waktu', [WaktuController::class, 'create']);
     Route::put('/waktu/{id}', [WaktuController::class, 'update']);
@@ -144,7 +144,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
 });
 
 //admin
-Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'admin', 'owner']], function () {
     Route::get('/adservice', [ServiceController::class, 'showadmin']);
     Route::post('/service', [ServiceController::class, 'create']);
     Route::put('/service/{id}', [ServiceController::class, 'update']);
