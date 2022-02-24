@@ -2013,7 +2013,7 @@ class DashboardController extends Controller
     public function keuanganKasir()
     {
         $user_outlet = Auth::user()->outlet_id;
-        $keuangan = DB::select('select ps.*, o.jenis, o.jenis_service, o.kasir, o.keterangan, o.nominal, o.outletid, os.nama_outlet, o.created_at as operasionalCreatedDate, o.updated_at as opeasionalUpdatedDate from operasionals o left JOIN outlets os on o.outletid = os.id left JOIN pesanans ps on o.idpesanan = ps.id where o.outletid = \'' . $user_outlet . '\' and date(o.created_at) = \'' . date('Y-m-d') . '\'');
+        $keuangan = DB::select('select ps.*, o.jenis, o.jenis_service, o.kasir, o.keterangan, o.nominal, o.outletid, os.nama_outlet, se.nama_layanan ,se.harga, se.jenis, se.item, o.created_at as operasionalCreatedDate, o.updated_at as opeasionalUpdatedDate from operasionals o left JOIN outlets os on o.outletid = os.id left JOIN pesanans ps on o.idpesanan = ps.id LEFT JOIN services se on ps.idlayanan = se.id where o.outletid = \'' . $user_outlet . '\' and date(o.created_at) = \'' . date('Y-m-d') . '\'');
 
         return $this->success('Success!', $keuangan);
     }
