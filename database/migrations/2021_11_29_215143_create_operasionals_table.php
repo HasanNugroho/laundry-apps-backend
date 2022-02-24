@@ -19,8 +19,12 @@ class CreateOperasionalsTable extends Migration
             $table->string('jenis');
             $table->string('jenis_service')->nullable();
             $table->string('kasir', 100);
-            $table->text('keterangan');
+            $table->string('item_name', 100)->nullable();
+            $table->string('satuan', 50)->nullable();
+            $table->text('keterangan')->nullable();
             $table->integer('nominal');
+            $table->integer('harga', 11)->nullable();
+            $table->integer('jumlah', 4)->nullable();
             $table->uuid('outletid');
             $table->timestamps();
         });

@@ -910,35 +910,6 @@ class DashboardController extends Controller
         return $this->success('Success!', ['selesai' => $selesai, 'proses' => $proses, 'antrian' => $antrian, 'dibatalkan' => $dibatalkan, 'total' => $all]);
     }
 
-    public function pengeluaran(Request $request)
-    {
-        $validator = Validator::make($request->all(),[
-            'nominal' => 'required|integer',
-            'keterangan' => 'required|string',
-        ]);
-
-        if($validator->fails()){
-            return $this->error('Create Invite Failed!', [ 'message' => $validator->errors()], 400);       
-        }
-
-        $uuid = Str::uuid();
-        $user_outlet = Auth::user()->outlet_id;
-        $insert = Operasional::create([
-            'id' => $uuid,
-            'nominal' => $request->nominal,
-            'keterangan' => $request->keterangan,
-            'jenis' => 'PENGELUARAN',
-            'kasir' => Auth::user()->username,
-            'outletid' => $user_outlet, 
-        ]);
-
-        if($insert){
-            return $this->success('Success!',"successfully created data!");
-        }else{
-            return $this->error('Failed!', [ 'message' => 'created data failed!'], 400);
-        }
-    }
-
     public function countTransaksiOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
@@ -2013,8 +1984,47 @@ class DashboardController extends Controller
     public function keuanganKasir()
     {
         $user_outlet = Auth::user()->outlet_id;
-        $keuangan = DB::select('select ps.*, o.jenis, o.jenis_service, o.kasir, o.keterangan, o.nominal, o.outletid, os.nama_outlet, se.nama_layanan ,se.harga, se.jenis, se.item, o.created_at as operasionalCreatedDate, o.updated_at as opeasionalUpdatedDate from operasionals o left JOIN outlets os on o.outletid = os.id left JOIN pesanans ps on o.idpesanan = ps.id LEFT JOIN services se on ps.idlayanan = se.id where o.outletid = \'' . $user_outlet . '\' and date(o.created_at) = \'' . date('Y-m-d') . '\'');
+        $keuangan = DB::select('select ps.*, o.jenis, o.jenis_service, o.kasir, o.keterangan, o.item_name as namaBarang, o.satuan, o.harga as hargaBarang, o.jumlah as jumlahBarang,  o.nominal, o.outletid, os.nama_outlet, se.nama_layanan ,se.harga, se.jenis, se.item, o.created_at as operasionalCreatedDate, o.updated_at as opeasionalUpdatedDate from operasionals o left JOIN outlets os on o.outletid = os.id left JOIN pesanans ps on o.idpesanan = ps.id LEFT JOIN services se on ps.idlayanan = se.id where o.outletid = \'' . $user_outlet . '\' and date(o.created_at) = \'' . date('Y-m-d') . '\'');
 
         return $this->success('Success!', $keuangan);
+    }
+
+
+
+    public function pengeluaran(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            'harga' => 'required|integer',
+            'item_name' => 'required|string',
+            'jumlah' => 'required|integer',
+            'keterangan' => 'string',
+            'satuan' => 'string',
+        ]);
+
+        if($validator->fails()){
+            return $this->error('Create Expenditure Failed!', [ 'message' => $validator->errors()], 400);       
+        }
+
+        $uuid = Str::uuid();
+        $user_outlet = Auth::user()->outlet_id;
+        $nominal = $request->jumlah * $request->harga;
+        $insert = Operasional::create([
+            'id' => $uuid,
+            'nominal' => $nominal,
+            'keterangan' => $request->keterangan,
+            'satuan' => $request->satuan,
+            'item_name' => $request->item_name,
+            'jumlah' => $request->jumlah,
+            'harga' => $request->harga,
+            'jenis' => 'PENGELUARAN',
+            'kasir' => Auth::user()->username,
+            'outletid' => $user_outlet, 
+        ]);
+
+        if($insert){
+            return $this->success('Success!',"successfully created data!");
+        }else{
+            return $this->error('Failed!', [ 'message' => 'created data failed!'], 400);
+        }
     }
 }
