@@ -69,6 +69,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
     Route::get('/dashboard/krpengeluaran', [DashboardController::class, 'pengeluaranKasir']);
     Route::get('/dashboard/krsearch', [DashboardController::class, 'searchKasir']);
     Route::get('/dashboard/krtotalpendapatan', [DashboardController::class, 'totalPemasukanKasir']);
+    Route::get('/dashboard/krkeuangan', [DashboardController::class, 'keuanganKasir']);
     Route::get('/riwayat', [PesananController::class, 'riwayat']);
 });
 

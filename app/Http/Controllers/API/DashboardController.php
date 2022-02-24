@@ -2008,6 +2008,13 @@ class DashboardController extends Controller
             'total_pemasukan' => $totalData[0]->total_pemasukan ? $totalData[0]->total_pemasukan : 0, 
             'total_utang' => $totalData[0]->total_utang ? $totalData[0]->total_utang : 0, 
             'total_transaksi' => $totalData[0]->total_transaksi ? $totalData[0]->total_transaksi : 0, 
-    ]);
+        ]);
+    }
+    public function keuanganKasir()
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        $keuangan = DB::select('select ps.*, o.jenis, o.jenis_service, o.kasir, o.keterangan, o.nominal, o.outletid, os.nama_outlet from operasionals o left JOIN outlets os on o.outletid = os.id left JOIN pesanans ps on o.idpesanan = ps.id where o.outletid = \'' . $user_outlet . '\' and date(o.created_at) = \'' . date('Y-m-d') . '\'');
+
+        return $this->success('Success!', $keuangan);
     }
 }
