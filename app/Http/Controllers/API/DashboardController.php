@@ -1985,8 +1985,16 @@ class DashboardController extends Controller
     {
         $user_outlet = Auth::user()->outlet_id;
         $keuangan = DB::select('select ps.*, o.jenis, o.jenis_service, o.kasir, o.keterangan, o.item_name as namaBarang, o.satuan, o.harga as hargaBarang, o.jumlah as jumlahBarang,  o.nominal, o.outletid, os.nama_outlet, se.nama_layanan ,se.harga, se.jenis, se.item, o.created_at as operasionalCreatedDate, o.updated_at as opeasionalUpdatedDate from operasionals o left JOIN outlets os on o.outletid = os.id left JOIN pesanans ps on o.idpesanan = ps.id LEFT JOIN services se on ps.idlayanan = se.id where o.outletid = \'' . $user_outlet . '\' and date(o.created_at) = \'' . date('Y-m-d') . '\'');
+        
+        $totalPemasukan = DB::select('select sum(o.nominal) as totalPemasukan from operasionals o left JOIN outlets os on o.outletid = os.id left JOIN pesanans ps on o.idpesanan = ps.id LEFT JOIN services se on ps.idlayanan = se.id where o.outletid = \'' . $user_outlet . '\' and date(o.created_at) = \'' . date('Y-m-d') . '\' and o.jenis = \'PEMASUKAN\'');
+        
+        $totalPengeluaran = DB::select('select sum(o.nominal) as totalPengeluaran from operasionals o left JOIN outlets os on o.outletid = os.id left JOIN pesanans ps on o.idpesanan = ps.id LEFT JOIN services se on ps.idlayanan = se.id where o.outletid = \'' . $user_outlet . '\' and date(o.created_at) = \'' . date('Y-m-d') . '\' and o.jenis = \'PENGELUARAN\'');
 
-        return $this->success('Success!', $keuangan);
+        $total['totalPemasukan'] = $totalPemasukan[0]->totalPemasukan ? $totalPemasukan[0]->totalPemasukan : 0;
+        $total['totalPengeluaran'] = $totalPengeluaran[0]->totalPengeluaran ? $totalPengeluaran[0]->totalPengeluaran : 0;
+
+
+        return $this->success('Success!', [$keuangan, $total]);
     }
 
 
