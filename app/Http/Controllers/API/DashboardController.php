@@ -275,7 +275,9 @@ class DashboardController extends Controller
             if($request->outlet != $user_outlet){
                 $totalpendapatan = DB::table('operasionals')
                     ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+                    ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
                     ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+                    ->where('pesanans.status', 'SELESAI')
                     ->where('operasionals.jenis', 'PEMASUKAN')
                     ->where('outlets.id', $request->outlet)
                     ->where('outlets.parent', $user_outlet)
@@ -283,7 +285,9 @@ class DashboardController extends Controller
             }else{
                 $totalpendapatan = DB::table('operasionals')
                     ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+                    ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
                     ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+                    ->where('pesanans.status', 'SELESAI')
                     ->where('operasionals.jenis', 'PEMASUKAN')
                     ->where('outlets.id', $request->outlet)
                     ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
@@ -291,7 +295,9 @@ class DashboardController extends Controller
         }else{
             $totalpendapatan = DB::table('operasionals')
                 ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+                ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
                 ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
+                ->where('pesanans.status', 'SELESAI')
                 ->where('operasionals.jenis', 'PEMASUKAN')
                 ->where('outlets.id', $user_outlet)
                 ->orWhere('outlets.parent', $user_outlet)
@@ -469,10 +475,12 @@ class DashboardController extends Controller
 
         $pendapatan = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
             ->where('operasionals.created_at', '>=', Carbon::now()->subMonth())
+            ->where('pesanans.status', 'SELESAI')
             ->where('operasionals.jenis', 'PEMASUKAN')
             ->where('outlets.id', $user_outlet)
-            ->groupBy('date', 'outletid')
+            ->groupBy('date', 'operasionals.outletid')
             ->orderBy('date', 'DESC')
             ->get(array(
                 DB::raw('Date(operasionals.created_at) as date'),
@@ -482,6 +490,8 @@ class DashboardController extends Controller
 
         $totalpendapatan = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
+            ->where('pesanans.status', 'SELESAI')
             ->where('operasionals.jenis', 'PEMASUKAN')
             ->where('outlets.id', $user_outlet)
             ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
@@ -1008,92 +1018,134 @@ class DashboardController extends Controller
     public function operasionalOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
-        if ($request->outlet) {
-            if ($request->outlet != $user_outlet) {
-                $operasional = DB::table('operasionals')
-                ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-                ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-                ->where('outlets.id', $request->outlet)
-                ->where('outlets.parent', $user_outlet)
-                ->select('operasionals.*', 'outlets.nama_outlet')
-                ->get();
-            }else{
-                $operasional = DB::table('operasionals')
-                ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-                ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-                ->where('outlets.id', $request->outlet)
-                ->select('operasionals.*', 'outlets.nama_outlet')
-                ->get();
-            }
-        }else{
-            $operasional = DB::table('operasionals')
-            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-            ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-            ->where('outlets.id', $user_outlet)
-            ->orWhere('outlets.parent', $user_outlet)
-            ->select('operasionals.*', 'outlets.nama_outlet')
-            ->get();
-        }
+        // DB::enableQueryLog(); // Enable query log
 
-        if ($request->outlet) {
-            if ($request->outlet != $user_outlet) {
-                $totalPendapatan = DB::table('operasionals')
-                ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-                ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-                ->where('operasionals.jenis', 'PEMASUKAN')
-                ->where('outlets.id', $request->outlet)
-                ->where('outlets.parent', $user_outlet)
-                ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
-                ->get();
+        // if ($request->outlet) {
+        //     if ($request->outlet != $user_outlet) {
+        //         $operasional = DB::table('operasionals')
+        //         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //         ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
+        //         ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        //         ->where('pesanans.status', 'SELESAI')
+        //         ->orwhere('operasionals.jenis', 'PENGELUARAN')
+        //         ->where('outlets.id', $request->outlet)
+        //         ->where('outlets.parent', $user_outlet)
+        //         ->select('operasionals.*', 'outlets.nama_outlet')
+        //         ->get();
+        //     }else{
+        //         $operasional = DB::table('operasionals')
+        //         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //         ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
+        //         ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        //         ->where('pesanans.status', 'SELESAI')
+        //         ->orwhere('operasionals.jenis', 'PENGELUARAN')
+        //         ->where('outlets.id', $request->outlet)
+        //         ->select('operasionals.*', 'outlets.nama_outlet')
+        //         ->get();
+        //     }
+        // }else{
+        //     $operasional = DB::table('operasionals')
+        //     ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //     ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
+        //     ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        //     ->where('pesanans.status', 'SELESAI')
+        //     ->orwhere('operasionals.jenis', 'PENGELUARAN')
+        //     ->where('outlets.id', $user_outlet)
+        //     ->orWhere('outlets.parent', $user_outlet)
+        //     ->select('operasionals.*', 'outlets.nama_outlet')
+        //     ->get();
+        // }
+        $outletQuery = '';
+        if($request->outlet){
+            if($request->outlet != $user_outlet){
+                $outletQuery = ' and ot.id = \'' . $request->outlet .'\' ';
             }else{
-                $totalPendapatan = DB::table('operasionals')
-                ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-                ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-                ->where('operasionals.jenis', 'PEMASUKAN')
-                ->where('outlets.id', $request->outlet)
-                ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
-                ->get();
+                $outletQuery = ' and (ot.id = \'' . $user_outlet . '\' or ot.parent = \'' . $user_outlet . '\') ';
             }
         }else{
-            $totalPendapatan = DB::table('operasionals')
-            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-            ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-            ->where('operasionals.jenis', 'PEMASUKAN')
-            ->where('outlets.id', $user_outlet)
-            ->orWhere('outlets.parent', $user_outlet)
-            ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
-            ->get();
+            $outletQuery = ' and (ot.id = \'' . $user_outlet . '\' or ot.parent = \'' . $user_outlet . '\') ';
         }
+        
+        // query date 
+        $queryDate = '';
+        if ($request->today){
+            $queryDate = ' and date(o.updated_at) = \'' . Carbon::today() . '\' ';
+        }else{
+            $queryDate = ' and date(o.updated_at) between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()) . '\' ';
+        }
+        $operasional = DB::select('select o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status = \'SELESAI\' or o.jenis = \'PENGELUARAN\') ' .$outletQuery. ' '.$queryDate.'');
+        
+        $totalPendapatan = DB::select('select sum(o.nominal) as "pendapatan" from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status = \'SELESAI\' and o.jenis = \'PEMASUKAN\') ' .$outletQuery. ' '.$queryDate.'');
+        
+        $totalPengeluaran = DB::select('select sum(o.nominal) as "pengeluaran" from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where o.jenis = \'PENGELUARAN\' ' .$outletQuery. ' '.$queryDate.'');
 
-        if ($request->outlet) {
-            if ($request->outlet != $user_outlet) {
-                $totalPengeluaran = DB::table('operasionals')
-                ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-                ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-                ->where('operasionals.jenis', 'PENGELUARAN')
-                ->where('outlets.id', $request->outlet)
-                ->where('outlets.parent', $user_outlet)
-                ->select(DB::raw('sum(operasionals.nominal) as "pengeluaran"'))
-                ->get();
-            }else{
-                $totalPengeluaran = DB::table('operasionals')
-                ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-                ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-                ->where('operasionals.jenis', 'PENGELUARAN')
-                ->where('outlets.id', $request->outlet)
-                ->select(DB::raw('sum(operasionals.nominal) as "pengeluaran"'))
-                ->get();
-            }
-        }else{
-            $totalPengeluaran = DB::table('operasionals')
-            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-            ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-            ->where('operasionals.jenis', 'PENGELUARAN')
-            ->where('outlets.id', $user_outlet)
-            ->orWhere('outlets.parent', $user_outlet)
-            ->select(DB::raw('sum(operasionals.nominal) as "pengeluaran"'))
-            ->get();
-        }
+        // dd(DB::getQueryLog()); // Show results of log
+
+        // if ($request->outlet) {
+        //     if ($request->outlet != $user_outlet) {
+        //         $totalPendapatan = DB::table('operasionals')
+        //         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //         ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
+        //         ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        //         ->where('pesanans.status', 'SELESAI')
+        //         ->where('operasionals.jenis', 'PEMASUKAN')
+        //         ->where('outlets.id', $request->outlet)
+        //         ->where('outlets.parent', $user_outlet)
+        //         ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
+        //         ->get();
+        //     }else{
+        //         $totalPendapatan = DB::table('operasionals')
+        //         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //         ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
+        //         ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        //         ->where('pesanans.status', 'SELESAI')
+        //         ->where('operasionals.jenis', 'PEMASUKAN')
+        //         ->where('outlets.id', $request->outlet)
+        //         ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
+        //         ->get();
+        //     }
+        // }else{
+        //     $totalPendapatan = DB::table('operasionals')
+        //     ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //     ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
+        //     ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        //     ->where('pesanans.status', 'SELESAI')
+        //     ->where('operasionals.jenis', 'PEMASUKAN')
+        //     ->where('outlets.id', $user_outlet)
+        //     ->orWhere('outlets.parent', $user_outlet)
+        //     ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
+        //     ->get();
+        // }
+
+        // if ($request->outlet) {
+        //     if ($request->outlet != $user_outlet) {
+        //         $totalPengeluaran = DB::table('operasionals')
+        //         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //         ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        //         ->where('operasionals.jenis', 'PENGELUARAN')
+        //         ->where('outlets.id', $request->outlet)
+        //         ->where('outlets.parent', $user_outlet)
+        //         ->select(DB::raw('sum(operasionals.nominal) as "pengeluaran"'))
+        //         ->get();
+        //     }else{
+        //         $totalPengeluaran = DB::table('operasionals')
+        //         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //         ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        //         ->where('operasionals.jenis', 'PENGELUARAN')
+        //         ->where('outlets.id', $request->outlet)
+        //         ->select(DB::raw('sum(operasionals.nominal) as "pengeluaran"'))
+        //         ->get();
+        //     }
+        // }else{
+        //     $totalPengeluaran = DB::table('operasionals')
+        //     ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        //     ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+        //     ->where('operasionals.jenis', 'PENGELUARAN')
+        //     ->where('outlets.id', $user_outlet)
+        //     ->orWhere('outlets.parent', $user_outlet)
+        //     ->select(DB::raw('sum(operasionals.nominal) as "pengeluaran"'))
+        //     ->get();
+        // }
 
         $omset = $totalPendapatan[0]->pendapatan - $totalPengeluaran[0]->pengeluaran;
 
@@ -1103,18 +1155,27 @@ class DashboardController extends Controller
     public function operasionalKaryawan()
     {
         $user_outlet = Auth::user()->outlet_id;
-        $operasional = DB::table('operasionals')
-        ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-        ->where('outlets.id', $user_outlet)
-        ->select('operasionals.*', 'outlets.nama_outlet')
-        ->get();
+        // DB::enableQueryLog(); // Enable query log
+
+        // $operasional = DB::table('operasionals')
+        // ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        // ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
+        // ->where('pesanans.status', 'SELESAI')
+        // ->orwhere('operasionals.jenis', 'PENGELUARAN')
+        // ->where('outlets.id', $user_outlet)
+        // ->select('operasionals.*', 'outlets.nama_outlet', 'pesanans.status')
+        // ->get();
+        $operasional = DB::select('select o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where ot.id = \'' . $user_outlet.'\' and (ps.status = \'SELESAI\' or o.jenis = \'PENGELUARAN\')');
+        // dd(DB::getQueryLog()); // Show results of log
         
-        $totalPendapatan = DB::table('operasionals')
-        ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-        ->where('operasionals.jenis', 'PENDAPATAN')
-        ->where('outlets.id', $user_outlet)
-        ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
-        ->get();
+        $totalPendapatan = DB::select('select sum(o.nominal) as "pendapatan" from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status = \'SELESAI\' and o.jenis = \'PEMASUKAN\') and ot.id = \''.$user_outlet.'\'');
+        // $totalPendapatan = DB::table('operasionals')
+        // ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        // ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
+        // ->where('operasionals.jenis', 'PEMASUKAN')
+        // ->where('outlets.id', $user_outlet)
+        // ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
+        // ->get();
         
         $totalPengeluaran = DB::table('operasionals')
         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
@@ -1357,6 +1418,7 @@ class DashboardController extends Controller
                 }
             }
         }
+        // DB::enableQueryLog(); // Enable query log
         
         if($request->search == 'operasional'){
             $user_outlet = Auth::user()->outlet_id;
@@ -1364,14 +1426,19 @@ class DashboardController extends Controller
                 if ($request->outlet != $user_outlet) {
                     $search = DB::table('operasionals')
                     ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+                    ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
                     ->where(function($query) use($request) {
                         $query;
                         $query->where('operasionals.keterangan', 'like', '%' . $request->q . '%');
                         $query->where('operasionals.jenis', 'like', '%' . $request->jenis . '%');
                         $query->orWhere('operasionals.nominal', 'like', '%' . $request->q . '%');
                     })
+                    ->where(function($query) use($request) {
+                        $query;
+                        $query->where('pesanans.status', 'SELESAI');
+                        $query->orWhere('operasionals.jenis','PENGELUARAN');
+                    })
                     ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
-                    // ->where('pesanans.status', 'SELESAI')
                     ->where('outlets.id', $request->outlet)
                     ->where('outlets.parent', $user_outlet)
                     ->select('operasionals.*')
@@ -1379,14 +1446,19 @@ class DashboardController extends Controller
                 }else{
                     $search = DB::table('operasionals')
                     ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+                    ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
                     ->where(function($query) use($request) {
                         $query;
-                        $query->where('operasionals.keterangan', 'like', '%' . $request->q . '%');
                         $query->where('operasionals.jenis', 'like', '%' . $request->jenis . '%');
+                        $query->where('operasionals.keterangan', 'like', '%' . $request->q . '%');
                         $query->orWhere('operasionals.nominal', 'like', '%' . $request->q . '%');
                     })
+                    ->where(function($query) use($request) {
+                        $query;
+                        $query->where('pesanans.status', 'SELESAI');
+                        $query->orWhere('operasionals.jenis','PENGELUARAN');
+                    })
                     ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
-                    // ->where('pesanans.status', 'SELESAI')
                     ->where('outlets.id', $request->outlet)
                     ->select('operasionals.*')
                     ->get();
@@ -1394,20 +1466,27 @@ class DashboardController extends Controller
             }else{
                 $search = DB::table('operasionals')
                 ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+                ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
                 ->where(function($query) use($request) {
                     $query;
-                    $query->where('operasionals.keterangan', 'like', '%' . $request->q . '%');
                     $query->where('operasionals.jenis', 'like', '%' . $request->jenis . '%');
+                    $query->where('operasionals.keterangan', 'like', '%' . $request->q . '%');
                     $query->orWhere('operasionals.nominal', 'like', '%' . $request->q . '%');
                 })
+                ->where(function($query) use($request) {
+                    $query;
+                    $query->where('pesanans.status', 'SELESAI');
+                    $query->orWhere('operasionals.jenis','PENGELUARAN');
+                })
                 ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addday(1)->toDateString()])
-                // ->where('pesanans.status', 'SELESAI')
                 ->where('outlets.id', $user_outlet)
                 ->orWhere('outlets.parent', $user_outlet)
-                ->select('operasionals.*')
+                ->select('operasionals.*','pesanans.status')
                 ->get();
             }
         }
+        // dd(DB::getQueryLog()); // Show results of log
+
         
         return $this->success('Success!', $search);
     }
@@ -1501,11 +1580,17 @@ class DashboardController extends Controller
             $user_outlet = Auth::user()->outlet_id;
             $search = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
             ->where(function($query) use($request) {
                 $query;
                 $query->where('operasionals.keterangan', 'like', '%' . $request->q . '%');
                 $query->where(DB::raw('upper(operasionals.jenis)'), 'like', '%' . str::upper($request->jenis) . '%');
                 $query->orWhere('operasionals.nominal', 'like', '%' . $request->q . '%');
+            })
+            ->where(function($query) use($request) {
+                $query;
+                $query->where('pesanans.status', 'SELESAI');
+                $query->orWhere('operasionals.jenis','PENGELUARAN');
             })
             // ->where('pesanans.status', 'SELESAI')
             ->where('outlets.id', $user_outlet)
@@ -1691,7 +1776,7 @@ class DashboardController extends Controller
                 from Date_Ranges
                 where Date < \''. $request->to . '\'), 
                 data_pemasukan AS (
-                SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+                SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where o.jenis = \'PEMASUKAN\' and ps.status = \'SELESAI\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
                 ),
                 data_pengeluaran AS (
                 SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
@@ -1708,7 +1793,7 @@ class DashboardController extends Controller
                from Date_Ranges
                where Date < CURRENT_DATE + interval 1 day), 
                data_pemasukan AS (
-               SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PEMASUKAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+               SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where o.jenis = \'PEMASUKAN\' and ps.status = \'SELESAI\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
                ),
                data_pengeluaran AS (
                SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
@@ -1718,11 +1803,14 @@ class DashboardController extends Controller
             ');
         }
 
+        // DB::enableQueryLog(); // Enable query log
         if ($request->outlet){
             if($request->outlet != $user_outlet){
                 $totalPendapatan = DB::table('operasionals')
                 ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+                ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
                 ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+                ->where('pesanans.status', 'SELESAI')
                 ->where('operasionals.jenis', 'PEMASUKAN')
                 ->where('outlets.id', $request->outlet)
                 ->where('outlets.parent', $user_outlet)
@@ -1731,7 +1819,9 @@ class DashboardController extends Controller
             }else{
                 $totalPendapatan = DB::table('operasionals')
                 ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+                ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
                 ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+                ->where('pesanans.status', 'SELESAI')
                 ->where('operasionals.jenis', 'PEMASUKAN')
                 ->where('outlets.id', $request->outlet)
                 ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
@@ -1740,13 +1830,17 @@ class DashboardController extends Controller
         }else{
             $totalPendapatan = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
             ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+            ->where('pesanans.status', 'SELESAI')
             ->where('operasionals.jenis', 'PEMASUKAN')
             ->where('outlets.id', $user_outlet)
             ->orWhere('outlets.parent', $user_outlet)
             ->select(DB::raw('sum(operasionals.nominal) as "pendapatan"'))
             ->get();
         }
+        // dd(DB::getQueryLog()); // Show results of log
+
 
         if ($request->outlet){
             if($request->outlet != $user_outlet){
@@ -1800,7 +1894,9 @@ class DashboardController extends Controller
             if($request->outlet != $user_outlet){
                 $totalpendapatan = DB::table('operasionals')
                     ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+                    ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
                     ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+                    ->where('pesanans.status', 'SELESAI')
                     ->where('operasionals.jenis', 'PEMASUKAN')
                     ->where('outlets.id', $request->outlet)
                     ->where('outlets.parent', $user_outlet)
@@ -1808,7 +1904,9 @@ class DashboardController extends Controller
             }else{
                 $totalpendapatan = DB::table('operasionals')
                     ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+                    ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
                     ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+                    ->where('pesanans.status', 'SELESAI')
                     ->where('operasionals.jenis', 'PEMASUKAN')
                     ->where('outlets.id', $request->outlet)
                     ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
@@ -1816,7 +1914,9 @@ class DashboardController extends Controller
         }else{
             $totalpendapatan = DB::table('operasionals')
                 ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+                ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
                 ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
+                ->where('pesanans.status', 'SELESAI')
                 ->where('operasionals.jenis', 'PEMASUKAN')
                 ->where('outlets.id', $user_outlet)
                 ->orWhere('outlets.parent', $user_outlet)
@@ -1861,14 +1961,18 @@ class DashboardController extends Controller
 
         $totalpendapatan = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
             ->whereDate('operasionals.created_at', Carbon::today())
+            ->where('pesanans.status', 'SELESAI')
             ->where('operasionals.jenis', 'PEMASUKAN')
             ->where('outlets.id', $user_outlet)
             ->get(DB::raw('sum(operasionals.nominal) as "pendapatan"'));
         
         $totalpengeluaran = DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
             ->whereDate('operasionals.created_at', Carbon::today())
+            ->where('pesanans.status', 'SELESAI')
             ->where('operasionals.jenis', 'PENGELUARAN')
             ->where('outlets.id', $user_outlet)
             ->get(DB::raw('sum(operasionals.nominal) as "pengeluaran"'));

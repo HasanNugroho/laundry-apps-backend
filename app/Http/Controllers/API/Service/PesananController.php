@@ -139,6 +139,26 @@ class PesananController extends Controller
 
         try {
             if(Pesanan::create($insert) && Pembayaran::create($insertPembayaran)){
+                $service = DB::select('select nama_layanan, jenis, harga, item from services where id=\''. $request->idlayanan .'\'');
+                if($service[0]->item != 'null'){
+                    $keteranganService = $service[0]->item;
+                }else{
+                    $keteranganService = $service[0]->nama_layanan;
+                }
+                $dataOperasional = [
+                    'id' => Str::uuid(),
+                    'idpesanan' => $uuid,
+                    'nominal' => $service[0]->harga * $request->jumlah,
+                    'keterangan' => $request->jumlah . "-" . $keteranganService,
+                    'jenis' => 'PEMASUKAN',
+                    'jenis_service' => $service[0]->jenis,
+                    'kasir' => Auth::user()['username'], 
+                    'outletid' => Auth::user()['outlet_id'], 
+                    'jumlah' => $request->jumlah, 
+                    'harga' => $service[0]->harga,
+                    'item_name' => $service[0]->nama_layanan
+                ];
+                Operasional::create($dataOperasional);
                 $pesanan = DB::table('pesanans')
                 ->leftJoin('pelanggans', 'pesanans.idpelanggan', '=', 'pelanggans.id')
                 ->leftJoin('outlets', 'pesanans.outletid', '=', 'outlets.id')
@@ -220,42 +240,42 @@ class PesananController extends Controller
         }
         $update = Pesanan::where('id', $id)->update(['status' => $request->status]);
         if($update){
-            $insert_pemasukan = DB::table('pesanans')
-            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
-            ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-            ->select('pesanans.id as idpesanan', 'pesanans.outletid', 'pesanans.jumlah', 'pesanans.kasir', 'services.nama_layanan', 'services.item', 'services.jenis as jenis_service', 'pembayarans.tagihan', 'pesanans.status as statusPesanan')
-            ->where('pesanans.id', $id)
-            ->where(DB::raw('upper(pembayarans.status)'), 'LUNAS')
-            ->get();
-            // dd($insert_pemasukan);
-            $uuid = Str::uuid();
-            if(Str::upper($insert_pemasukan[0]->statusPesanan) == 'SELESAI'){
-                if(Str::upper($request->status) == 'SELESAI' && $insert_pemasukan){
-                    if (Operasional::where('idpesanan', $insert_pemasukan[0]->idpesanan)->doesntExist()) {
-                        Operasional::create([
-                            'id' => $uuid,
-                            'idpesanan' => $insert_pemasukan[0]->idpesanan,
-                            'nominal' => $insert_pemasukan[0]->tagihan,
-                            'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah,
-                            'jenis' => 'PEMASUKAN',
-                            'jenis_service' => $insert_pemasukan[0]->jenis_service,
-                            'kasir' => $insert_pemasukan[0]->kasir, 
-                            'outletid' => $insert_pemasukan[0]->outletid, 
-                        ]);
-                    }else{
-                        Operasional::where('idpesanan', $insert_pemasukan[0]->idpesanan)->update([
-                            'id' => $uuid,
-                            'idpesanan' => $insert_pemasukan[0]->idpesanan,
-                            'nominal' => $insert_pemasukan[0]->tagihan,
-                            'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah,
-                            'jenis' => 'PEMASUKAN',
-                            'jenis_service' => $insert_pemasukan[0]->jenis_service,
-                            'kasir' => $insert_pemasukan[0]->kasir, 
-                            'outletid' => $insert_pemasukan[0]->outletid, 
-                        ]);
-                    }
-                }
-            }
+            // $insert_pemasukan = DB::table('pesanans')
+            // ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+            // ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+            // ->select('pesanans.id as idpesanan', 'pesanans.outletid', 'pesanans.jumlah', 'pesanans.kasir', 'services.nama_layanan', 'services.item', 'services.jenis as jenis_service', 'pembayarans.tagihan', 'pesanans.status as statusPesanan')
+            // ->where('pesanans.id', $id)
+            // ->where(DB::raw('upper(pembayarans.status)'), 'LUNAS')
+            // ->get();
+            // // dd($insert_pemasukan);
+            // $uuid = Str::uuid();
+            // if(Str::upper($insert_pemasukan[0]->statusPesanan) == 'SELESAI'){
+            //     if(Str::upper($request->status) == 'SELESAI' && $insert_pemasukan){
+            //         if (Operasional::where('idpesanan', $insert_pemasukan[0]->idpesanan)->doesntExist()) {
+            //             Operasional::create([
+            //                 'id' => $uuid,
+            //                 'idpesanan' => $insert_pemasukan[0]->idpesanan,
+            //                 'nominal' => $insert_pemasukan[0]->tagihan,
+            //                 'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah,
+            //                 'jenis' => 'PEMASUKAN',
+            //                 'jenis_service' => $insert_pemasukan[0]->jenis_service,
+            //                 'kasir' => $insert_pemasukan[0]->kasir, 
+            //                 'outletid' => $insert_pemasukan[0]->outletid, 
+            //             ]);
+            //         }else{
+            //             Operasional::where('idpesanan', $insert_pemasukan[0]->idpesanan)->update([
+            //                 'id' => $uuid,
+            //                 'idpesanan' => $insert_pemasukan[0]->idpesanan,
+            //                 'nominal' => $insert_pemasukan[0]->tagihan,
+            //                 'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah,
+            //                 'jenis' => 'PEMASUKAN',
+            //                 'jenis_service' => $insert_pemasukan[0]->jenis_service,
+            //                 'kasir' => $insert_pemasukan[0]->kasir, 
+            //                 'outletid' => $insert_pemasukan[0]->outletid, 
+            //             ]);
+            //         }
+            //     }
+            // }
             return $this->success('Success!');
         }else{
             return $this->error('Failed!', [ 'message' => 'Update Data Failed!'], 400);
@@ -280,41 +300,41 @@ class PesananController extends Controller
         $updatePembayaran = ['status' => $request->status, 'utang' => 0];
         $update = Pembayaran::where('idpesanan', $id)->update($updatePembayaran);
         if($update){
-            $uuid = Str::uuid();
-            $insert_pemasukan = DB::table('pesanans')
-            ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
-            ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
-            ->select('pesanans.id as idpesanan', 'pesanans.outletid', 'pesanans.jumlah', 'pesanans.kasir', 'services.nama_layanan', 'services.item', 'services.jenis as jenis_service', 'pembayarans.tagihan', 'pembayarans.status as statusPembayaran')
-            ->where('pesanans.id', $id)
-            ->where(DB::raw('upper(pembayarans.status)'), 'LUNAS')
-            ->get();
-            if(Str::upper($insert_pemasukan[0]->statusPembayaran) == 'LUNAS'){
-                if(Str::upper($request->status) == 'LUNAS' && !isset($insert_pemasukan)){
-                    if (Operasional::where('idpesanan', $insert_pemasukan[0]->idpesanan)->doesntExist()) {
-                        Operasional::create([
-                            'id' => $uuid,
-                            'idpesanan' => $insert_pemasukan[0]->idpesanan,
-                            'nominal' => $insert_pemasukan[0]->tagihan,
-                            'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
-                            'jenis' => 'PEMASUKAN',
-                            'jenis_service' => $insert_pemasukan[0]->jenis_service,
-                            'kasir' => $insert_pemasukan[0]->kasir, 
-                            'outletid' => $insert_pemasukan[0]->outletid, 
-                        ]);
-                    }else{
-                        Operasional::where('idpesanan', $insert_pemasukan[0]->idpesanan)->update([
-                            'id' => $uuid,
-                            'idpesanan' => $insert_pemasukan[0]->idpesanan,
-                            'nominal' => $insert_pemasukan[0]->tagihan,
-                            'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
-                            'jenis' => 'PEMASUKAN',
-                            'jenis_service' => $insert_pemasukan[0]->jenis_service,
-                            'kasir' => $insert_pemasukan[0]->kasir, 
-                            'outletid' => $insert_pemasukan[0]->outletid, 
-                        ]);
-                    }
-                }
-            }
+            // $uuid = Str::uuid();
+            // $insert_pemasukan = DB::table('pesanans')
+            // ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
+            // ->rightJoin('pembayarans', 'pesanans.id', '=', 'pembayarans.idpesanan')
+            // ->select('pesanans.id as idpesanan', 'pesanans.outletid', 'pesanans.jumlah', 'pesanans.kasir', 'services.nama_layanan', 'services.item', 'services.jenis as jenis_service', 'pembayarans.tagihan', 'pembayarans.status as statusPembayaran')
+            // ->where('pesanans.id', $id)
+            // ->where(DB::raw('upper(pembayarans.status)'), 'LUNAS')
+            // ->get();
+            // if(Str::upper($insert_pemasukan[0]->statusPembayaran) == 'LUNAS'){
+            //     if(Str::upper($request->status) == 'LUNAS' && !isset($insert_pemasukan)){
+            //         if (Operasional::where('idpesanan', $insert_pemasukan[0]->idpesanan)->doesntExist()) {
+            //             Operasional::create([
+            //                 'id' => $uuid,
+            //                 'idpesanan' => $insert_pemasukan[0]->idpesanan,
+            //                 'nominal' => $insert_pemasukan[0]->tagihan,
+            //                 'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
+            //                 'jenis' => 'PEMASUKAN',
+            //                 'jenis_service' => $insert_pemasukan[0]->jenis_service,
+            //                 'kasir' => $insert_pemasukan[0]->kasir, 
+            //                 'outletid' => $insert_pemasukan[0]->outletid, 
+            //             ]);
+            //         }else{
+            //             Operasional::where('idpesanan', $insert_pemasukan[0]->idpesanan)->update([
+            //                 'id' => $uuid,
+            //                 'idpesanan' => $insert_pemasukan[0]->idpesanan,
+            //                 'nominal' => $insert_pemasukan[0]->tagihan,
+            //                 'keterangan' => $insert_pemasukan[0]->nama_layanan . '-' . $insert_pemasukan[0]->jumlah . '-' . $insert_pemasukan[0]->item,
+            //                 'jenis' => 'PEMASUKAN',
+            //                 'jenis_service' => $insert_pemasukan[0]->jenis_service,
+            //                 'kasir' => $insert_pemasukan[0]->kasir, 
+            //                 'outletid' => $insert_pemasukan[0]->outletid, 
+            //             ]);
+            //         }
+            //     }
+            // }
             return $this->success('Success!');
         }else{
             return $this->error('Failed!', [ 'message' => 'Update Data Failed!'], 400);
