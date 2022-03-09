@@ -18,3 +18,6 @@ use App\Http\Controllers\API\AuthController;
 //    return view('welcome');
 //});
 Route::get('/verif', [AuthController::class, 'verif'])->middleware(['signed'])->name('verif');
+Route::fallback(function () {
+    return Response::json("Method Not Allowed", 405);
+});

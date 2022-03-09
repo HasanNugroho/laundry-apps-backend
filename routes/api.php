@@ -169,7 +169,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
 });
 
 Route::fallback(function () {
-    return Response::json("NOT FOUND", 404);
+    return Response::json("Method Not Allowed", 405);
 });
 
 // //Kiloan

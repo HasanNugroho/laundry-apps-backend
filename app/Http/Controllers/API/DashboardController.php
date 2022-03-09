@@ -1690,7 +1690,11 @@ class DashboardController extends Controller
 
         $statusQuery = '';
         if ($request->status) {
-            $statusQuery = ' and upper(pesanans.status) = \'' . Str::upper($request->status) .'\'';
+            if (Str::upper($request->status) == 'UTANG' || Str::upper($request->status) == 'BELUM BAYAR' ){
+                $statusQuery = ' and (upper(pembayarans.status) = \'BELUM BAYAR\' or upper(pembayarans.status) = \'UTANG\')';
+            }else{
+                $statusQuery = ' and upper(pesanans.status) = \'' . Str::upper($request->status) .'\'';
+            }
         }
 
                 // dd(DB::getQueryLog()); // Show results of log
