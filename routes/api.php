@@ -91,7 +91,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
 //operasional
 Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
     Route::post('/pengeluaran', [DashboardController::class, 'pengeluaran']);
-    // Route::post('/pemasukan', [DashboardController::class, 'pemasukan']);
+    Route::post('/pemasukan', [DashboardController::class, 'pemasukan']);
     Route::get('/operasional', [PesananController::class, 'operasional']);
 });
 

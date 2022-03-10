@@ -1073,7 +1073,7 @@ class DashboardController extends Controller
         }else{
             $queryDate = ' and date(o.updated_at) between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()) . '\' ';
         }
-        $operasional = DB::select('select o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status = \'SELESAI\' or o.jenis = \'PENGELUARAN\') ' .$outletQuery. ' '.$queryDate.'');
+        $operasional = DB::select('select ps.*, o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status = \'SELESAI\' or o.jenis = \'PENGELUARAN\') or (o.jenis = \'PENGELUARAN\' and o.idpesanan = null ) ' .$outletQuery. ' '.$queryDate.' order by o.updated_at desc');
         
         $totalPendapatan = DB::select('select sum(o.nominal) as "pendapatan" from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status = \'SELESAI\' and o.jenis = \'PEMASUKAN\') ' .$outletQuery. ' '.$queryDate.'');
         
@@ -2133,6 +2133,43 @@ class DashboardController extends Controller
             'jumlah' => $request->jumlah,
             'harga' => $request->harga,
             'jenis' => 'PENGELUARAN',
+            'kasir' => Auth::user()->username,
+            'outletid' => $user_outlet, 
+        ]);
+
+        if($insert){
+            return $this->success('Success!',"successfully created data!");
+        }else{
+            return $this->error('Failed!', [ 'message' => 'created data failed!'], 400);
+        }
+    }
+
+    public function pemasukan(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            'harga' => 'required|integer',
+            'item_name' => 'required|string',
+            'jumlah' => 'required|integer',
+            'keterangan' => 'string',
+            'satuan' => 'string',
+        ]);
+
+        if($validator->fails()){
+            return $this->error('Create Expenditure Failed!', [ 'message' => $validator->errors()], 400);       
+        }
+
+        $uuid = Str::uuid();
+        $user_outlet = Auth::user()->outlet_id;
+        $nominal = $request->jumlah * $request->harga;
+        $insert = Operasional::create([
+            'id' => $uuid,
+            'nominal' => $nominal,
+            'keterangan' => $request->keterangan,
+            'satuan' => $request->satuan,
+            'item_name' => $request->item_name,
+            'jumlah' => $request->jumlah,
+            'harga' => $request->harga,
+            'jenis' => 'PEMASUKAN',
             'kasir' => Auth::user()->username,
             'outletid' => $user_outlet, 
         ]);
