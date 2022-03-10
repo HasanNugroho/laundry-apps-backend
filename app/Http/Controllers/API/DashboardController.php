@@ -1076,7 +1076,7 @@ class DashboardController extends Controller
         $operasional = DB::select('select ps.*, o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status = \'SELESAI\' or o.jenis = \'PENGELUARAN\' or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null ))  ' .$outletQuery. ' '.$queryDate.' order by o.updated_at desc');
         
         
-        $totalPendapatan = DB::select('select sum(o.nominal) as "pendapatan" from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status = \'SELESAI\' and o.jenis = \'PEMASUKAN\') or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null ) ' .$outletQuery. ' '.$queryDate.'');
+        $totalPendapatan = DB::select('select sum(o.nominal) as "pendapatan" from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status = \'SELESAI\' and o.jenis = \'PEMASUKAN\' or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null )) ' .$outletQuery. ' '.$queryDate.'');
         
         $totalPengeluaran = DB::select('select sum(o.nominal) as "pengeluaran" from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where o.jenis = \'PENGELUARAN\' ' .$outletQuery. ' '.$queryDate.'');
 
