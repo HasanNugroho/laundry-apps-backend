@@ -427,11 +427,17 @@ class PesananController extends Controller
     public function operasional()
     {
         $user_outlet = Auth::user()->outlet_id;
-        $operasional = DB::table('operasionals')
-        ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-        ->where('outlets.id', $user_outlet)
-        ->select('operasionals.*')
-        ->get();
+        // $operasional = DB::table('operasionals')
+        // ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+        // ->where('outlets.id', $user_outlet)
+        // ->select('operasionals.*')
+        // ->get();
+
+        $operasional = DB::select('select o.* from operasionals o 
+        left join outlets ot on o.outletid = ot.id 
+        left join pesanans ps on o.idpesanan = ps.id 
+        where ot.id = \''. $user_outlet .'\' and (ps.status != \'DIBATALKAN\' or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null))
+        order by o.updated_at desc');
         return $this->success('Success!', $operasional);
     }
 
