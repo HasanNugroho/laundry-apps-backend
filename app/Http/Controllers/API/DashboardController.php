@@ -1772,41 +1772,37 @@ class DashboardController extends Controller
         }else{
             $query = 'and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\'';
         }
-        if($request->from != FALSE && $request->to != FALSE && $request->from != TRUE && $request->to != TRUE){
-            $pendapatanharian = DB::select('
-                with recursive Date_Ranges AS (
-                select \''. $request->from . '\' as Date
-                union all
-                select Date + interval 1 day
-                from Date_Ranges
-                where Date < \''. $request->to . '\'), 
-                data_pemasukan AS (
-                SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where o.jenis = \'PEMASUKAN\' and ps.status = \'SELESAI\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
-                ),
-                data_pengeluaran AS (
-                SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
-                )
-               
-                SELECT dr.Date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as data_pemasukan, (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end) as data_pengeluaran, ABS((case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) - (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end)) AS total FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
-            ');
+
+        $date_from = 'CURRENT_DATE - INTERVAL 30 day';
+        if($request->from || $request->from != TRUE){
+            $date_from = $request->from ? '\'' . $request->from . '\'' : 'CURRENT_DATE - INTERVAL 30 day';
         }else{
-            $pendapatanharian = DB::select('
-            with recursive Date_Ranges AS (
-                select CURRENT_DATE - INTERVAL 30 day as Date
-               union all
-               select Date + interval 1 day
-               from Date_Ranges
-               where Date < CURRENT_DATE + interval 1 day), 
-               data_pemasukan AS (
-               SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where o.jenis = \'PEMASUKAN\' and ps.status = \'SELESAI\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
-               ),
-               data_pengeluaran AS (
-               SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
-               )
-               
-               SELECT dr.Date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as data_pemasukan, (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end) as data_pengeluaran, ABS((case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) - (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end)) AS total FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
-            ');
+            $date_from = 'CURRENT_DATE - INTERVAL 30 day';
         }
+        
+        $date_to = 'CURRENT_DATE + interval 1 day';
+        if($request->to || $request->to != TRUE){
+            $date_to = $request->to ? '\'' . $request->to . '\'' : 'CURRENT_DATE + interval 1 day';
+        }else{
+            $date_to = 'CURRENT_DATE + interval 1 day';
+        }
+
+        $pendapatanharian = DB::select('
+        with recursive Date_Ranges AS (
+            select '. $date_from . ' as Date
+            union all
+            select Date + interval 1 day
+            from Date_Ranges
+            where Date < '. $date_to . '), 
+            data_pemasukan AS (
+            SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where o.jenis = \'PEMASUKAN\' and ps.status = \'SELESAI\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+            ),
+            data_pengeluaran AS (
+            SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+            )
+           
+            SELECT dr.Date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as data_pemasukan, (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end) as data_pengeluaran, ABS((case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) - (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end)) AS total FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
+        ');
 
         // DB::enableQueryLog(); // Enable query log
         if ($request->outlet){
@@ -1886,10 +1882,37 @@ class DashboardController extends Controller
             $data['total'] =  $dataHarian->data_pemasukan-$dataHarian->data_pengeluaran ;
             array_push($pendapatanArr,$data);
         }
+        
+        $user_outlet = Auth::user()->outlet_id;
+        if ($request->outlet) {
+            if ($request->outlet != $user_outlet) {
+                $query = 'and ou.id = \''. $request->outlet . '\' and ou.parent = \''. $user_outlet . '\'';
+            }else{
+                $query = 'and ou.id = \''. $request->outlet . '\'';
+            }
+        }else{
+            $query = 'and ou.id = \''. $user_outlet . '\' or ou.parent = \''. $user_outlet . '\'';
+        }
+
+        $totalData = DB::select('
+        SELECT COUNT(ps.id) as total_transaksi, sum((SELECT ps2.jumlah from pesanans ps2 LEFT JOIN services se2 on ps2.idlayanan = se2.id WHERE ps2.id = ps.id and se2.jenis = \'kiloan\')) as total_kiloan, sum((SELECT ps2.jumlah from pesanans ps2 LEFT JOIN services se2 on ps2.idlayanan = se2.id WHERE ps2.id = ps.id and se2.jenis = \'satuan\')) as total_item
+        FROM pesanans ps 
+        RIGHT JOIN operasionals o on o.idpesanan = ps.id
+        LEFT JOIN outlets ou on ps.outletid = ou.id where
+        ps.status != \'DIBATALKAN\' and (DATE_FORMAT(ps.created_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()). '\') ' . $query 
+        );
 
         $omset = ($totalPendapatan[0]->pendapatan ? $totalPendapatan[0]->pendapatan : 0) - ($totalPengeluaran[0]->pengeluaran ? $totalPengeluaran[0]->pengeluaran : 0);
 
-        return $this->success('Success!', ["harian" => $pendapatanArr, "total_pendapatan" => $totalPendapatan[0]->pendapatan ? $totalPendapatan[0]->pendapatan : 0, "total_pengeluaran" => $totalPengeluaran[0]->pengeluaran ? $totalPengeluaran[0]->pengeluaran : 0, "omset" => $omset]);
+        return $this->success('Success!', [
+            "harian" => $pendapatanArr, 
+            "total_pendapatan" => $totalPendapatan[0]->pendapatan ? $totalPendapatan[0]->pendapatan : 0, 
+            "total_pengeluaran" => $totalPengeluaran[0]->pengeluaran ? $totalPengeluaran[0]->pengeluaran : 0, 
+            "omset" => $omset,
+            "total_kiloan" => $totalData[0]->total_kiloan ? $totalData[0]->total_kiloan : 0, 
+            "total_item" => $totalData[0]->total_item ? $totalData[0]->total_item : 0, 
+            "total_transaksi" => $totalData[0]->total_transaksi ? $totalData[0]->total_transaksi : 0
+        ]);
     }
     
     public function totalPemasukanAdmin(Request $request)

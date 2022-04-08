@@ -433,9 +433,10 @@ class PesananController extends Controller
         // ->select('operasionals.*')
         // ->get();
 
-        $operasional = DB::select('select o.* from operasionals o 
+        $operasional = DB::select('select o.*, pg.nama as namaPelanggan, ps.nota_transaksi from operasionals o 
         left join outlets ot on o.outletid = ot.id 
         left join pesanans ps on o.idpesanan = ps.id 
+        left join pelanggans pg on ps.idpelanggan = pg.id
         where ot.id = \''. $user_outlet .'\' and (ps.status != \'DIBATALKAN\' or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null))
         order by o.updated_at desc');
         return $this->success('Success!', $operasional);
