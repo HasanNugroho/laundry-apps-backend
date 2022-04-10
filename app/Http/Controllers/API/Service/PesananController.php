@@ -226,7 +226,9 @@ class PesananController extends Controller
     public function updatestatuspesanan($id, Request $request)
     {
         $validasiLogin = Pesanan::where('id', $id)->select('outletid')->first();
-
+        if(!$validasiLogin){
+            return $this->error('Failed!', [ 'message' => 'Pesanan tidak tersedia!'], 404);       
+        }
         if($validasiLogin['outletid'] != Auth::user()->outlet_id){
             return $this->error('Failed!', [ 'message' => 'You are not allowed!'], 400);       
         }
@@ -238,7 +240,7 @@ class PesananController extends Controller
         if($validator->fails()){
             return $this->error('Failed!', [ 'message' => $validator->errors()], 400);       
         }
-        $update = Pesanan::where('id', $id)->update(['status' => $request->status]);
+        $update = Pesanan::where('id', $id)->update(['status' => Str::upper($request->status)]);
         if($update){
             // $insert_pemasukan = DB::table('pesanans')
             // ->leftJoin('services', 'pesanans.idlayanan', '=', 'services.id')
