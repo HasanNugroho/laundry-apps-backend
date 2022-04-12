@@ -1073,7 +1073,7 @@ class DashboardController extends Controller
         }else{
             $queryDate = ' and date(o.updated_at) between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()) . '\' ';
         }
-        $operasional = DB::select('select ps.*, o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status = \'SELESAI\' or o.jenis = \'PENGELUARAN\' or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null ))  ' .$outletQuery. ' '.$queryDate.' order by o.updated_at desc');
+        $operasional = DB::select('select ps.*, o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status = \'SELESAI\' or o.jenis = \'PENGELUARAN\' or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null ))  ' .$outletQuery. ' '.$queryDate.' order by o.updated_at, ps.updated_at desc');
         
         
         $totalPendapatan = DB::select('select sum(o.nominal) as "pendapatan" from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status = \'SELESAI\' and o.jenis = \'PEMASUKAN\' or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null )) ' .$outletQuery. ' '.$queryDate.'');
@@ -1795,13 +1795,13 @@ class DashboardController extends Controller
             from Date_Ranges
             where Date < '. $date_to . '), 
             data_pemasukan AS (
-            SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where o.jenis = \'PEMASUKAN\' and ps.status = \'SELESAI\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+            SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date, sum((select ps.jumlah where o.jenis_service = \'kiloan\')) as total_kiloan, sum((select ps.jumlah where o.jenis_service = \'satuan\')) as total_satuan from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where o.jenis = \'PEMASUKAN\' and ps.status = \'SELESAI\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
             ),
             data_pengeluaran AS (
             SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
             )
            
-            SELECT dr.Date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as data_pemasukan, (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end) as data_pengeluaran, ABS((case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) - (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end)) AS total FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
+            SELECT dr.Date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as data_pemasukan, (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end) as data_pengeluaran, ABS((case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) - (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end)) AS total, (case when (SELECT dps.total_kiloan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.total_kiloan from data_pemasukan dps where dps.date = dr.Date) end) as total_kiloan, (case when (SELECT dps.total_satuan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.total_satuan from data_pemasukan dps where dps.date = dr.Date) end) as total_satuan FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
         ');
 
         // DB::enableQueryLog(); // Enable query log
@@ -1879,6 +1879,8 @@ class DashboardController extends Controller
             $data['Date'] = $dataHarian->Date;
             $data['data_pemasukan'] = $dataHarian->data_pemasukan;
             $data['data_pengeluaran'] = $dataHarian->data_pengeluaran;
+            $data['total_kiloan'] = $dataHarian->total_kiloan;
+            $data['total_satuan'] = $dataHarian->total_satuan;
             $data['total'] =  $dataHarian->data_pemasukan-$dataHarian->data_pengeluaran ;
             array_push($pendapatanArr,$data);
         }
@@ -1899,7 +1901,7 @@ class DashboardController extends Controller
         FROM pesanans ps 
         RIGHT JOIN operasionals o on o.idpesanan = ps.id
         LEFT JOIN outlets ou on ps.outletid = ou.id where
-        ps.status != \'DIBATALKAN\' and (DATE_FORMAT(ps.created_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()). '\') ' . $query 
+        ps.status = \'SELESAI\' and (DATE_FORMAT(ps.created_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()). '\') ' . $query 
         );
 
         $omset = ($totalPendapatan[0]->pendapatan ? $totalPendapatan[0]->pendapatan : 0) - ($totalPengeluaran[0]->pengeluaran ? $totalPengeluaran[0]->pengeluaran : 0);
