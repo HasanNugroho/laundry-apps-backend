@@ -1019,26 +1019,41 @@ class DashboardController extends Controller
     {
         $user_outlet = Auth::user()->outlet_id;
         $outletQuery = '';
+        $outletQueryPengeluaran = '';
         if($request->outlet){
             if($request->outlet != $user_outlet){
+                $outletQueryPengeluaran = ' and ot2.id = \'' . $request->outlet .'\' ';
                 $outletQuery = ' and ot.id = \'' . $request->outlet .'\' ';
             }else{
+                $outletQueryPengeluaran = ' and (ot2.id = \'' . $user_outlet . '\' or ot2.parent = \'' . $user_outlet . '\') ';
                 $outletQuery = ' and (ot.id = \'' . $user_outlet . '\' or ot.parent = \'' . $user_outlet . '\') ';
             }
         }else{
+            $outletQueryPengeluaran = ' and (ot2.id = \'' . $user_outlet . '\' or ot2.parent = \'' . $user_outlet . '\') ';
             $outletQuery = ' and (ot.id = \'' . $user_outlet . '\' or ot.parent = \'' . $user_outlet . '\') ';
         }
 
         // query date
         $queryDate = '';
+        $queryDatePengeluaran = '';
         if ($request->today){
+            $queryDatePengeluaran = ' and DATE_FORMAT(o2.updated_at, \'%Y-%m-%d\') = \'' . Carbon::today() . '\' ';
             $queryDate = ' and DATE_FORMAT(o.updated_at, \'%Y-%m-%d\') = \'' . Carbon::today() . '\' ';
         }else{
+            $queryDatePengeluaran = ' and DATE_FORMAT(o2.updated_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()) . '\' ';
             $queryDate = ' and DATE_FORMAT(o.updated_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()) . '\' ';
         }
         // $operasional = DB::select('select ps.*, o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status != \'DIBATALKAN\' or o.jenis = \'PENGELUARAN\' or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null ))  ' .$outletQuery. ' '.$queryDate.' order by o.updated_at, ps.updated_at desc');
 
-        $operasional = DB::select('select ps.*, o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status != \'DIBATALKAN\' or o.jenis = \'PENGELUARAN\') ' .$outletQuery. ' '.$queryDate.' order by o.updated_at, ps.updated_at desc');
+        // $operasional = DB::select('select ps.*, o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status != \'DIBATALKAN\' or o.jenis = \'PENGELUARAN\' or o.jenis = \'PEMASUKAN\') ' .$outletQuery. ' '.$queryDate.' order by o.updated_at, ps.updated_at desc');
+
+        $operasional = DB::select('with a as (select ps.idwaktu, ps.deadline, ps.nota_transaksi, ps.status as statsPesanan, o.*, ot.nama_outlet, ps.status from operasionals o LEFT JOIN outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id WHERE o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\' ' .$outletQuery. ' '.$queryDate.'),
+
+        b as (select ps2.idwaktu, ps2.deadline, ps2.nota_transaksi, ps2.status as statusPesanan, o2.*, ot2.nama_outlet, ps2.status from operasionals o2 LEFT JOIN outlets ot2 on o2.outletid = ot2.id left join pesanans ps2 on o2.idpesanan = ps2.id WHERE o2.jenis = \'PENGELUARAN\' ' .$outletQueryPengeluaran. ' '.$queryDatePengeluaran.')
+
+        SELECT * FROM a UNION SELECT * from b order by created_at desc');
+
+
 
 
 
