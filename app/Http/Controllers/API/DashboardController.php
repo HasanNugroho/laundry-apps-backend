@@ -1047,7 +1047,7 @@ class DashboardController extends Controller
 
         // $operasional = DB::select('select ps.*, o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status != \'DIBATALKAN\' or o.jenis = \'PENGELUARAN\' or o.jenis = \'PEMASUKAN\') ' .$outletQuery. ' '.$queryDate.' order by o.updated_at, ps.updated_at desc');
 
-        $operasional = DB::select('with a as (select ps.idwaktu, ps.deadline, ps.nota_transaksi, ps.status as statsPesanan, o.*, ot.nama_outlet, ps.status from operasionals o LEFT JOIN outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id WHERE o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\' ' .$outletQuery. ' '.$queryDate.'),
+        $operasional = DB::select('with a as (select ps.idwaktu, ps.deadline, ps.nota_transaksi, ps.status as statsPesanan, o.*, ot.nama_outlet, ps.status from operasionals o LEFT JOIN outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id WHERE ((o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\') or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null)) ' .$outletQuery. ' '.$queryDate.'),
 
         b as (select ps2.idwaktu, ps2.deadline, ps2.nota_transaksi, ps2.status as statusPesanan, o2.*, ot2.nama_outlet, ps2.status from operasionals o2 LEFT JOIN outlets ot2 on o2.outletid = ot2.id left join pesanans ps2 on o2.idpesanan = ps2.id WHERE o2.jenis = \'PENGELUARAN\' ' .$outletQueryPengeluaran. ' '.$queryDatePengeluaran.')
 
@@ -1055,9 +1055,7 @@ class DashboardController extends Controller
 
 
 
-
-
-        $totalPendapatan = DB::select('select sum(o.nominal) as "pendapatan" from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status != \'DIBATALKAN\' and o.jenis = \'PEMASUKAN\' or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null )) ' .$outletQuery. ' '.$queryDate.'');
+        $totalPendapatan = DB::select('select sum(o.nominal) as "pendapatan" from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where ((o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\') or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null)) ' .$outletQuery. ' '.$queryDate.'');
 
         $totalPengeluaran = DB::select('select sum(o.nominal) as "pengeluaran" from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where o.jenis = \'PENGELUARAN\' ' .$outletQuery. ' '.$queryDate.'');
 
@@ -1776,7 +1774,7 @@ class DashboardController extends Controller
             from Date_Ranges
             where Date < '. $date_to . '),
             data_pemasukan AS (
-            SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+            SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where ((o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\') or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null)) ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
             ),
             data_pengeluaran AS (
             SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
@@ -1801,7 +1799,7 @@ class DashboardController extends Controller
             $dateTo = $request->to;
         }
 
-        $totalPendapatan = DB::select('select sum(o.nominal) as pendapatan from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id WHERE o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\' and (DATE_FORMAT(o.created_at, \'%Y-%m-%d\') BETWEEN \'' . $dateFrom . '\' and \'' . $dateTo . '\') ' . $query);
+        $totalPendapatan = DB::select('select sum(o.nominal) as pendapatan from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id WHERE ((o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\') or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null)) and (DATE_FORMAT(o.created_at, \'%Y-%m-%d\') BETWEEN \'' . $dateFrom . '\' and \'' . $dateTo . '\') ' . $query);
 
         $totalPengeluaran = DB::select('select sum(o.nominal) as pengeluaran from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id WHERE o.jenis = \'PENGELUARAN\' and (DATE_FORMAT(o.created_at, \'%Y-%m-%d\') BETWEEN \'' . $dateFrom . '\' and \'' . $dateTo . '\') ' . $query);
 
