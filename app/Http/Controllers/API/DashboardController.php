@@ -1018,43 +1018,6 @@ class DashboardController extends Controller
     public function operasionalOwner(Request $request)
     {
         $user_outlet = Auth::user()->outlet_id;
-        // DB::enableQueryLog(); // Enable query log
-
-        // if ($request->outlet) {
-        //     if ($request->outlet != $user_outlet) {
-        //         $operasional = DB::table('operasionals')
-        //         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-        //         ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
-        //         ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-        //         ->where('pesanans.status', 'SELESAI')
-        //         ->orwhere('operasionals.jenis', 'PENGELUARAN')
-        //         ->where('outlets.id', $request->outlet)
-        //         ->where('outlets.parent', $user_outlet)
-        //         ->select('operasionals.*', 'outlets.nama_outlet')
-        //         ->get();
-        //     }else{
-        //         $operasional = DB::table('operasionals')
-        //         ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-        //         ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
-        //         ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-        //         ->where('pesanans.status', 'SELESAI')
-        //         ->orwhere('operasionals.jenis', 'PENGELUARAN')
-        //         ->where('outlets.id', $request->outlet)
-        //         ->select('operasionals.*', 'outlets.nama_outlet')
-        //         ->get();
-        //     }
-        // }else{
-        //     $operasional = DB::table('operasionals')
-        //     ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
-        //     ->leftJoin('pesanans', 'operasionals.idpesanan', '=', 'pesanans.id')
-        //     ->whereBetween('operasionals.created_at', [$request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString(), $request->to ? $request->to : Carbon::now()->addWeeks(1)->toDateString()])
-        //     ->where('pesanans.status', 'SELESAI')
-        //     ->orwhere('operasionals.jenis', 'PENGELUARAN')
-        //     ->where('outlets.id', $user_outlet)
-        //     ->orWhere('outlets.parent', $user_outlet)
-        //     ->select('operasionals.*', 'outlets.nama_outlet')
-        //     ->get();
-        // }
         $outletQuery = '';
         if($request->outlet){
             if($request->outlet != $user_outlet){
@@ -1069,11 +1032,14 @@ class DashboardController extends Controller
         // query date
         $queryDate = '';
         if ($request->today){
-            $queryDate = ' and date(o.updated_at) = \'' . Carbon::today() . '\' ';
+            $queryDate = ' and DATE_FORMAT(o.updated_at, \'%Y-%m-%d\') = \'' . Carbon::today() . '\' ';
         }else{
-            $queryDate = ' and date(o.updated_at) between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()) . '\' ';
+            $queryDate = ' and DATE_FORMAT(o.updated_at, \'%Y-%m-%d\') between \'' . ($request->from ? $request->from : Carbon::now()->subDays(30)->startOfDay()->toDateString()) . '\' and \'' . ($request->to ? $request->to : Carbon::now()->addday(1)->toDateString()) . '\' ';
         }
-        $operasional = DB::select('select ps.*, o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status != \'DIBATALKAN\' or o.jenis = \'PENGELUARAN\' or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null ))  ' .$outletQuery. ' '.$queryDate.' order by o.updated_at, ps.updated_at desc');
+        // $operasional = DB::select('select ps.*, o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status != \'DIBATALKAN\' or o.jenis = \'PENGELUARAN\' or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null ))  ' .$outletQuery. ' '.$queryDate.' order by o.updated_at, ps.updated_at desc');
+
+        $operasional = DB::select('select ps.*, o.*, ot.nama_outlet, ps.status from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status != \'DIBATALKAN\' or o.jenis = \'PENGELUARAN\') ' .$outletQuery. ' '.$queryDate.' order by o.updated_at, ps.updated_at desc');
+
 
 
         $totalPendapatan = DB::select('select sum(o.nominal) as "pendapatan" from operasionals o left join outlets ot on o.outletid = ot.id left join pesanans ps on o.idpesanan = ps.id where (ps.status != \'DIBATALKAN\' and o.jenis = \'PEMASUKAN\' or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null )) ' .$outletQuery. ' '.$queryDate.'');
