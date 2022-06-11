@@ -1819,27 +1819,31 @@ class DashboardController extends Controller
             $date_to = 'CURRENT_DATE + interval 1 day';
         }
 
-        $pendapatanharian = DB::select('
-        with recursive Date_Ranges AS (
+        $pendapatanharian = DB::select('with recursive Date_Ranges AS (
             select '. $date_from . ' as Date
             union all
             select Date + interval 1 day
             from Date_Ranges
             where Date < '. $date_to . '),
             data_pemasukan AS (
-            SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pemasukan, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where ((o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\') or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null)) ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+            SELECT o.id, o.nominal, DATE_FORMAT(o.updated_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id left join pembayarans pb on ps.id = pb.idpesanan where ((o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\' and pb.status = \'LUNAS\') or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null)) ' . $query . '  GROUP BY o.id, o.nominal, DATE_FORMAT(o.updated_at, \'%Y-%m-%d\')
             ),
+            data_pemasukan_b AS (
+            SELECT o.id, o.nominal, DATE_FORMAT(pb.updated_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id left join pembayarans pb on ps.id = pb.idpesanan where ((o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\' and pb.status = \'LUNAS\') or (o.jenis = \'PEMASUKAN\' and o.idpesanan is null)) ' . $query . '  GROUP BY o.id, o.nominal, DATE_FORMAT(pb.updated_at, \'%Y-%m-%d\')
+            ),
+            all_pemasukan as (SELECT * from data_pemasukan UNION SELECT * from data_pemasukan_b),
+            unique_pemasukan_data as(SELECT DISTINCT ap.* from all_pemasukan ap),
             data_pengeluaran AS (
-            SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+            SELECT case when sum(o.nominal) IS NULL then 0 else sum(o.nominal) end as data_pengeluaran, DATE_FORMAT(o.updated_at, \'%Y-%m-%d\') as date from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id where o.jenis = \'PENGELUARAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.updated_at, \'%Y-%m-%d\')
             ),
             total_kiloan AS (
-            SELECT DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date, sum(ps.jumlah) as total_kiloan from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where o.jenis_service = \'kiloan\' and o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+            SELECT DATE_FORMAT(o.updated_at, \'%Y-%m-%d\') as date, sum(ps.jumlah) as total_kiloan from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where o.jenis_service = \'kiloan\' and o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.updated_at, \'%Y-%m-%d\')
             ),
             total_satuan AS (
-            SELECT DATE_FORMAT(o.created_at, \'%Y-%m-%d\') as date, sum(ps.jumlah) as total_satuan from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where o.jenis_service = \'satuan\' and o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.created_at, \'%Y-%m-%d\')
+            SELECT DATE_FORMAT(o.updated_at, \'%Y-%m-%d\') as date, sum(ps.jumlah) as total_satuan from operasionals o LEFT JOIN outlets ou on o.outletid = ou.id left join pesanans ps on o.idpesanan = ps.id where o.jenis_service = \'satuan\' and o.jenis = \'PEMASUKAN\' and ps.status != \'DIBATALKAN\' ' . $query . ' GROUP BY DATE_FORMAT(o.updated_at, \'%Y-%m-%d\')
             )
 
-            SELECT dr.Date, (case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) as data_pemasukan, (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end) as data_pengeluaran, ABS((case when (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) IS NULL then 0 else (SELECT dps.data_pemasukan from data_pemasukan dps where dps.date = dr.Date) end) - (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end)) AS total, (case when (SELECT tk.total_kiloan from total_kiloan tk where tk.date = dr.Date) IS NULL then 0 else (SELECT tk.total_kiloan from total_kiloan tk where tk.date = dr.Date) end) as total_kiloan, (case when (SELECT ts.total_satuan from total_satuan ts where ts.date = dr.Date) IS NULL then 0 else (SELECT ts.total_satuan from total_satuan ts where ts.date = dr.Date) end) as total_satuan FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
+            SELECT dr.Date, (case when (SELECT sum(upd.nominal) from unique_pemasukan_data upd where upd.date = dr.Date) IS NULL then 0 else (SELECT sum(upd.nominal) from unique_pemasukan_data upd where upd.date = dr.Date) end) as data_pemasukan, (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end) as data_pengeluaran, ABS((case when (SELECT sum(upd.nominal) from unique_pemasukan_data upd where upd.date = dr.Date) IS NULL then 0 else (SELECT sum(upd.nominal) from unique_pemasukan_data upd where upd.date = dr.Date) end) - (case when (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) IS NULL then 0 else (SELECT dpn.data_pengeluaran from data_pengeluaran dpn where dpn.date = dr.Date) end)) AS total, (case when (SELECT tk.total_kiloan from total_kiloan tk where tk.date = dr.Date) IS NULL then 0 else (SELECT tk.total_kiloan from total_kiloan tk where tk.date = dr.Date) end) as total_kiloan, (case when (SELECT ts.total_satuan from total_satuan ts where ts.date = dr.Date) IS NULL then 0 else (SELECT ts.total_satuan from total_satuan ts where ts.date = dr.Date) end) as total_satuan FROM Date_Ranges dr GROUP BY dr.Date ORDER BY dr.Date
         ');
 
         $dateFrom = Carbon::now()->subDays(30)->startOfDay()->toDateString();
