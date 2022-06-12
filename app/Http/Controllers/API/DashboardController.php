@@ -2203,7 +2203,6 @@ class DashboardController extends Controller
     public function deleteOperasional($id)
     {
         $user_outlet = Auth::user()->outlet_id;
-        print($user_outlet);
         if (Auth::user()->role == 'owner'){
             if (DB::table('operasionals')
             ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
