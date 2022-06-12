@@ -93,6 +93,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cors']], function () {
     Route::post('/pengeluaran', [DashboardController::class, 'pengeluaran']);
     Route::post('/pemasukan', [DashboardController::class, 'pemasukan']);
     Route::get('/operasional', [PesananController::class, 'operasional']);
+    Route::delete('/operasional/{id}', [DashboardController::class, 'deleteOperasional']);
 });
 
 // pesanan

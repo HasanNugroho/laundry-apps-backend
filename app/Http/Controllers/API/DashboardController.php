@@ -2200,4 +2200,65 @@ class DashboardController extends Controller
             return $this->error('Failed!', [ 'message' => 'created data failed!'], 400);
         }
     }
+    public function deleteOperasional($id)
+    {
+        $user_outlet = Auth::user()->outlet_id;
+        print($user_outlet);
+        if (Auth::user()->role == 'owner'){
+            if (DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.id', $id)
+            ->WhereNull('idpesanan')
+            ->where(function($query) use($user_outlet) {
+                $query;
+                $query->where('outlets.id', $user_outlet);
+                $query->orwhere('outlets.parent', $user_outlet);
+            })
+            ->doesntExist()) {
+                return $this->error('data not found!', [ 'message' => 'Data Not Found!'], 404);
+            }
+
+            $operasional_id = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.id', $id)
+            ->WhereNull('idpesanan')
+            ->where(function($query) use($user_outlet) {
+                $query;
+                $query->where('outlets.id', $user_outlet);
+                $query->orwhere('outlets.parent', $user_outlet);
+            })
+            ->first('operasionals.id');
+
+            if ($operasional_id->id != $id){
+                return $this->error('deleted data failed!', [ 'message' => 'Deleted Data Failed!'], 404);
+            }
+
+            Operasional::where('id', $id)->delete();
+        }else{
+            if (DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.id', $id)
+            ->WhereNull('idpesanan')
+            ->where('outlets.id', $user_outlet)
+            ->doesntExist()) {
+                return $this->error('data not found!', [ 'message' => 'Data Not Found!'], 404);
+            }
+
+            $operasional_id = DB::table('operasionals')
+            ->leftJoin('outlets', 'operasionals.outletid', '=', 'outlets.id')
+            ->where('operasionals.id', $id)
+            ->WhereNull('idpesanan')
+            ->where('outlets.id', $user_outlet)
+            ->first('operasionals.id');
+
+            if ($operasional_id->id != $id){
+                return $this->error('deleted data failed!', [ 'message' => 'Deleted Data Failed!'], 404);
+            }
+
+            Operasional::where('id', $id)->delete();
+
+        }
+
+        return $this->success('Success!',"successfully deleted data!");
+    }
 }
